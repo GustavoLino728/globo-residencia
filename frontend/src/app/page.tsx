@@ -6,7 +6,7 @@ export default function HomePage() {
       <Heading>contaGIA</Heading>
       <Text mt="4">Bem-vindo a Nossa Plataforma</Text>
       <Button colorScheme="teal" mt="6">
-        Teste do Chakra
+        Teste do Chakraa
       </Button>
     </Box>
   );
