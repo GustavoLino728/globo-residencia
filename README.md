@@ -1,76 +1,36 @@
-# README — Git Flow Simplificado
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-**Objetivo:** explicar, passo a passo, como acessar o repositório remoto, atualizar sua branch, adicionar arquivos e commitar — usando permanentemente as branches `main`, `develop`, `frontend` e `backend`.
+## Getting Started
 
----
-
-## 1. Clonar o repositório (uma vez)
+First, run the development server:
 
 ```bash
-git clone https://github.com/<seu-usuario>/globo-residencia.git
-cd globo-residencia
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
----
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 2. Verificar branches existentes e mudar para a branch desejada
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```bash
-# listar branches locais e remotas
-git branch -a
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-# trocar para a branch que você vai trabalhar (ex: develop)
-git checkout develop
-# ou (git switch develop)
-```
+## Learn More
 
----
+To learn more about Next.js, take a look at the following resources:
 
-## 3. Sempre atualize sua branch antes de começar
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-```bash
-# atualizar sua branch com alterações remotas
-git pull origin develop
-```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
----
+## Deploy on Vercel
 
-## 4. Adicionar/editar arquivos e commitar
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-```bash
-# adicionar todos os arquivos
- git add .
-
-# ou adicionar arquivos específicos
- git add src/meuArquivo.js README.md
-
-# criar commit
- git commit -m "feat(frontend): add login form #TICKET-123"
-
-# enviar alterações para o remoto
- git push origin develop
-```
-
-> Substitua `develop` pelo nome da branch que você estiver usando (`main`, `frontend` ou `backend`).
-
----
-
-## 5. Checklist rápido antes do push
-
-* [ ] Salvar arquivos e garantir que estão corretos
-* [ ] Mensagem de commit clara e relacionada ao ticket
-* [ ] Branch correta selecionada (`main`, `develop`, `frontend` ou `backend`)
-
----
-
-## 6. Comandos úteis (resumo)
-
-```bash
-git clone <URL>
-git branch -a
-git checkout <branch>   # ou git switch <branch>
-git pull origin <branch>
-git add .
-git commit -m "mensagem"
-git push origin <branch>
-```
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
