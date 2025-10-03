@@ -1,3 +1,39 @@
+# Contagia
+
+## 📋 Sobre o Projeto
+
+Tem como objetivo receber e processar arquivos MXF de reportagens da Globo, identificar músicas utilizadas e gerar arquivos ETL para fiscalização de direitos autorais.
+
+## 🎯 Funcionalidades
+
+- Upload de arquivos MXF via API REST
+- Extração de faixas de áudio (planejado)
+- Identificação de músicas usando API Audd (planejado)
+- Geração de arquivos ETL com informações das músicas (planejado)
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Node.js** - Ambiente de execução
+- **TypeScript** - Linguagem principal
+- **Fastify** - Framework web para APIs REST
+- **@fastify/multipart** - Upload de arquivos
+- **FFmpeg** - Processamento de mídia (planejado)
+- **Audd API** - Reconhecimento de músicas (planejado)
+
+## 📁 Estrutura do Projeto
+
+## Backend
+/src
+/config # Configurações e variáveis de ambiente
+/controllers # Controladores de requisições
+/routes # Definição de rotas da API
+/services # Lógica de negócio
+/integrations # Integrações com APIs externas
+/models # Modelos de dados
+/utils # Funções auxiliares
+server.ts # Inicialização do servidor
+/uploads # Arquivos recebidos via upload
+
 # README — Git Flow Simplificado
 
 **Objetivo:** explicar, passo a passo, como acessar o repositório remoto, atualizar sua branch, adicionar arquivos e commitar — usando permanentemente as branches `main`, `develop`, `frontend` e `backend`.
