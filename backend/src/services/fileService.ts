@@ -3,7 +3,7 @@ import { pipeline } from 'stream/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Caminho para pasta onde os arquivos serão armazenados
+// Caminho para a pasta onde os arquivos serão armazenados
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 // Garante que a pasta 'uploads' existe
