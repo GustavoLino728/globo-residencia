@@ -26,10 +26,10 @@ fastify.register(multipart, {
 });
 fastify.register(fileRoutes);
 
-fastify.listen({ port: 3000 }, (err, address) => {
+fastify.listen({ port: 8000 }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
   }
-  console.log(`Servidor rodando na porta 3000`);
+  console.log(`Servidor rodando na porta 8000`);
 });
