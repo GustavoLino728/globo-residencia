@@ -7,32 +7,25 @@ Localização do backend: `backend/`
 Requisitos
 - Node.js (recomendo v18+)
 - ffmpeg disponível no PATH
-- pnpm (ou npm) para instalar dependências
+- npm para instalar dependências
 
 Instalação
 1. Entre na pasta do backend:
 ```powershell
 cd C:\Next\globo-residencia\backend
 ```
-2. Instale dependências (use pnpm ou npm):
+2. Instale dependências:
 ```powershell
-# com pnpm (recomendado se você usa pnpm)
-pnpm install
-
-# ou com npm
 npm install
 ```
 
 Executando em desenvolvimento
 ```powershell
-# Com pnpm (modo dev)
-pnpm run dev
-
-# Com npm (modo dev)
+# Modo dev
 npm run dev
 
 # ou build + node
-pnpm run build
+npm run build
 node dist/server.js
 ```
 
@@ -46,14 +39,14 @@ Exemplo de uso no Postman
 
 A) Multipart/form-data (recomendado)
 - Method: POST
-- URL: http://localhost:3000/buscaAudD
+- URL: http://localhost:8000/buscaAudD
 - Body → form-data
   - Key: `file` (type: File) → selecione o arquivo `.mxf` local
 - Envie e aguarde. A resposta pode demorar dependendo do tamanho do arquivo e do número de segmentos.
 
 B) Raw binary (enviar o arquivo diretamente no body)
 - Method: POST
-- URL: http://localhost:3000/buscaAudD
+- URL: http://localhost:8000/buscaAudD
 - Body → binary → Select File
 - Headers:
   - Content-Type: application/octet-stream
@@ -69,7 +62,7 @@ C) JSON base64 (não recomendado para arquivos grandes)
 
 Exemplo PowerShell (Invoke-WebRequest) — raw binary
 ```powershell
-Invoke-WebRequest -Uri 'http://localhost:3000/buscaAudD' -Method Post -InFile 'C:\caminho\para\arquivo.mxf' -ContentType 'application/octet-stream' -UseBasicParsing -OutFile 'response.json'
+Invoke-WebRequest -Uri 'http://localhost:8000/buscaAudD' -Method Post -InFile 'C:\caminho\para\arquivo.mxf' -ContentType 'application/octet-stream' -UseBasicParsing -OutFile 'response.json'
 Get-Content response.json -Raw
 ```
 
