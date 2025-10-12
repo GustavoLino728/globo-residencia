@@ -1,113 +1,86 @@
-# Contagia
+# API de Identificação com AudD
 
-## 📋 Sobre o Projeto
+Esta pequena API em Fastify + TypeScript recebe um arquivo MXF (ou áudio bruto), converte para WAV, divide em trechos (padrão 20s), chama o serviço AudD para identificar música em cada trecho, e retorna um JSON com o cronograma de trechos onde foram encontrados matches.
 
-Tem como objetivo receber e processar arquivos MXF de reportagens da Globo, identificar músicas utilizadas e gerar arquivos ETL para fiscalização de direitos autorais.
+Localização do backend: `backend/`
 
-## 🎯 Funcionalidades
+Requisitos
+- Node.js (recomendo v18+)
+- ffmpeg disponível no PATH
+- npm para instalar dependências
 
-- Upload de arquivos MXF via API REST
-- Extração de faixas de áudio (planejado)
-- Identificação de músicas usando API Audd (planejado)
-- Geração de arquivos ETL com informações das músicas (planejado)
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Node.js** - Ambiente de execução
-- **TypeScript** - Linguagem principal
-- **Fastify** - Framework web para APIs REST
-- **@fastify/multipart** - Upload de arquivos
-- **FFmpeg** - Processamento de mídia (planejado)
-- **Audd API** - Reconhecimento de músicas (planejado)
-
-## 📁 Estrutura do Projeto
-
-## Backend
-/src
-/config # Configurações e variáveis de ambiente
-/controllers # Controladores de requisições
-/routes # Definição de rotas da API
-/services # Lógica de negócio
-/integrations # Integrações com APIs externas
-/models # Modelos de dados
-/utils # Funções auxiliares
-server.ts # Inicialização do servidor
-/uploads # Arquivos recebidos via upload
-
-# README — Git Flow Simplificado
-
-**Objetivo:** explicar, passo a passo, como acessar o repositório remoto, atualizar sua branch, adicionar arquivos e commitar — usando permanentemente as branches `main`, `develop`, `frontend` e `backend`.
-
----
-
-## 1. Clonar o repositório (uma vez)
-
-```bash
-git clone https://github.com/<seu-usuario>/globo-residencia.git
-cd globo-residencia
+Instalação
+1. Entre na pasta do backend:
+```powershell
+cd C:\Next\globo-residencia\backend
+```
+2. Instale dependências:
+```powershell
+npm install
 ```
 
----
+Executando em desenvolvimento
+```powershell
+# Modo dev
+npm run dev
 
-## 2. Verificar branches existentes e mudar para a branch desejada
-
-```bash
-# listar branches locais e remotas
-git branch -a
-
-# trocar para a branch que você vai trabalhar (ex: develop)
-git checkout develop
-# ou (git switch develop)
+# ou build + node
+npm run build
+node dist/server.js
 ```
 
----
+Endpoints
 
-## 3. Sempre atualize sua branch antes de começar
+1) POST /buscaAudD
+- Recebe um arquivo via multipart/form-data (campo `file`), raw binary no body (Content-Type: application/octet-stream) ou JSON com base64.
+- Retorna um JSON traduzido em português com campos como `caminhoCombinado`, `quantidadeSegmentos`, `segundosPorSegmento`, `resultados` e `cronograma`.
 
-```bash
-# atualizar sua branch com alterações remotas
-git pull origin develop
+Exemplo de uso no Postman
+
+A) Multipart/form-data (recomendado)
+- Method: POST
+- URL: http://localhost:8000/buscaAudD
+- Body → form-data
+  - Key: `file` (type: File) → selecione o arquivo `.mxf` local
+- Envie e aguarde. A resposta pode demorar dependendo do tamanho do arquivo e do número de segmentos.
+
+B) Raw binary (enviar o arquivo diretamente no body)
+- Method: POST
+- URL: http://localhost:8000/buscaAudD
+- Body → binary → Select File
+- Headers:
+  - Content-Type: application/octet-stream
+
+C) JSON base64 (não recomendado para arquivos grandes)
+- Body → raw → JSON
+```json
+{
+  "filename": "meu_arquivo.mxf",
+  "data": "<base64_do_arquivo>"
+}
 ```
 
----
-
-## 4. Adicionar/editar arquivos e commitar
-
-```bash
-# adicionar todos os arquivos
- git add .
-
-# ou adicionar arquivos específicos
- git add src/meuArquivo.js README.md
-
-# criar commit
- git commit -m "feat(frontend): add login form #TICKET-123"
-
-# enviar alterações para o remoto
- git push origin develop
+Exemplo PowerShell (Invoke-WebRequest) — raw binary
+```powershell
+Invoke-WebRequest -Uri 'http://localhost:8000/buscaAudD' -Method Post -InFile 'C:\caminho\para\arquivo.mxf' -ContentType 'application/octet-stream' -UseBasicParsing -OutFile 'response.json'
+Get-Content response.json -Raw
 ```
-# envio de alteracoes para teste da 
-> Substitua `develop` pelo nome da branch que você estiver usando (`main`, `frontend` ou `backend`).
+
+Observações importantes
+- O token da API AudD está configurado no arquivo `backend/src/services/auddService.ts` (atualmente hardcoded). Recomendamos mover para variável de ambiente no futuro.
+- O `segundosPorSegmento` padrão é 20s. Para mudar, altere `SEG_SECONDS` no controller ou modularize com variável de ambiente.
+- Logs de processamento ficam em `backend/tmp_audio/process.log`.
+- O arquivo concatenado final fica em `backend/tmp_audio/combined.wav`.
+
+Problemas comuns
+- `ffmpeg` não encontrado: instale ffmpeg e adicione ao PATH.
+- Timeout no Postman: aumente o Request Timeout em Settings → General → Request timeout (ms) para 0 (infinito).
+
+Próximos passos recomendados
+- Mover token para variável de ambiente
+- Adicionar rota GET para baixar `combined.wav`
+- Tornar `segundosPorSegmento` configurável por variável de ambiente
+- Adicionar testes automatizados (jest/mocha)
 
 ---
-
-## 5. Checklist rápido antes do push
-
-* [ ] Salvar arquivos e garantir que estão corretos
-* [ ] Mensagem de commit clara e relacionada ao ticket
-* [ ] Branch correta selecionada (`main`, `develop`, `frontend` ou `backend`)
-
----
-
-## 6. Comandos úteis (resumo)
-
-```bash
-git clone <URL>
-git branch -a
-git checkout <branch>   # ou git switch <branch>
-git pull origin <branch>
-git add .
-git commit -m "mensagem"
-git push origin <branch>
-```
----
+Se quiser, eu atualizo o README com exemplos de resposta ou adiciono instruções para configurar a variável de ambiente do token.
