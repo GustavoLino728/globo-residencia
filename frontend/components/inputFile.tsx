@@ -96,7 +96,6 @@ export default function MediaUpload() {
           style={{ display: "none" }}
         />
 
-        {/* Área de drag-and-drop */}
         <div
           className="w-full h-30 flex flex-col items-center justify-center cursor-pointer"
           onClick={() => document.getElementById("media-upload")?.click()}
@@ -109,7 +108,6 @@ export default function MediaUpload() {
           </p>
           
         </div>
-        <Spacer y={1}/>
         <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
           !fileName 
             ? 'opacity-100 translate-y-0' 
@@ -122,7 +120,7 @@ export default function MediaUpload() {
             Fazer upload
           </Button>
         </div>
-        {/* Botão Enviar aparece quando há arquivo selecionado */}
+
         <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
           fileName 
             ? 'opacity-100 translate-y-0' 
@@ -135,8 +133,6 @@ export default function MediaUpload() {
             Enviar
           </Button>
         </div>
-        <Spacer y={1} />
-
         <div className={`transition-all duration-500 ease-in-out transform ${
           fileName && mediaURL
             ? 'opacity-100 scale-100 translate-y-0' 
