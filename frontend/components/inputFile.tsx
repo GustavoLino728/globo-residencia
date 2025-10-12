@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
@@ -10,10 +10,19 @@ export default function MediaUpload() {
   const [mediaURL, setMediaURL] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const urlRef = useRef<string | null>(null);
+  const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
+
   const handleFile = (file: File) => {
     if (file && (file.type.startsWith("audio/") || file.type.startsWith("video/") || file.name.toLowerCase().endsWith('.mxf'))) {
       setFileName(file.name);
-      setMediaURL(URL.createObjectURL(file));
+      // Revoga URL anterior se existir
+      if (urlRef.current) {
+        URL.revokeObjectURL(urlRef.current);
+      }
+      const newUrl = URL.createObjectURL(file);
+      urlRef.current = newUrl;
+      setMediaURL(newUrl);
       setFileType(file.type || 'video/mxf');
     } else {
       alert("Por favor, envie um arquivo de áudio ou vídeo válido 🎵🎬");
@@ -35,13 +44,32 @@ export default function MediaUpload() {
   };
 
   const handleRemove = () => {
+    // Pausa a reprodução se estiver tocando
+    if (mediaElementRef.current) {
+      mediaElementRef.current.pause();
+      mediaElementRef.current.currentTime = 0;
+    }
     setFileName(null);
     setMediaURL(null);
     setFileType(null);
+    // Revoga URL do objeto
+    if (urlRef.current) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+    }
     // limpa o input de arquivo
     const input = document.getElementById("media-upload") as HTMLInputElement;
     if (input) input.value = "";
   };
+
+  // Revoga URL ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      if (urlRef.current) {
+        URL.revokeObjectURL(urlRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Card
@@ -82,16 +110,29 @@ export default function MediaUpload() {
           
         </div>
         <Spacer y={1}/>
-        <div className={`transition-all duration-500 ease-in-out transform ${
+        <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
           !fileName 
             ? 'opacity-100 translate-y-0' 
             : 'opacity-0 translate-y-2 pointer-events-none'
         }`}>
           <Button
-            className="bg-[#6F1FC6] text-white font-semibold rounded-full px-8 py-3 w-3/4"
+            className="bg-[#6F1FC6] text-white font-semibold rounded-full px-12 py-4 w-full text-lg"
             onClick={() => document.getElementById("media-upload")?.click()}
           >
             Fazer upload
+          </Button>
+        </div>
+        {/* Botão Enviar aparece quando há arquivo selecionado */}
+        <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
+          fileName 
+            ? 'opacity-100 translate-y-0' 
+            : 'opacity-0 translate-y-2 pointer-events-none'
+        }`}>
+          <Button
+            className="bg-[#1FC66F] text-white font-semibold rounded-full px-12 py-4 w-full text-lg"
+            onClick={() => {/* ação de envio aqui */}}
+          >
+            Enviar
           </Button>
         </div>
         <Spacer y={1} />
@@ -109,6 +150,7 @@ export default function MediaUpload() {
                   controls 
                   className="w-full"
                   src={mediaURL || undefined}
+                  ref={mediaElementRef as React.RefObject<HTMLAudioElement>}
                 >
                   Seu navegador não suporta o elemento de áudio.
                 </audio>
@@ -117,6 +159,7 @@ export default function MediaUpload() {
                   controls 
                   className="w-full max-h-64"
                   src={mediaURL || undefined}
+                  ref={mediaElementRef as React.RefObject<HTMLVideoElement>}
                 >
                   Seu navegador não suporta o elemento de vídeo.
                   {fileName?.toLowerCase().endsWith('.mxf') && (
@@ -140,6 +183,7 @@ export default function MediaUpload() {
             </div>
           </div>
         </div>
+
       </CardBody>
     </Card>
   );

@@ -5,16 +5,7 @@ import { Image } from "@heroui/image";
 
 export default function Home() {
   return (
-    <div className="
-      min-h-screen 
-      text-white 
-      flex flex-col
-      font-sans 
-      bg-[url('/Home.png')] 
-      bg-cover 
-      bg-center 
-      bg-no-repeat 
-      h-230">
+    <div>
       <div className=" 
         backdrop-blur-md
         bg-white/3                
