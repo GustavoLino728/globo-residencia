@@ -4,7 +4,8 @@
   "description": "API de Identificação com AudD - Backend do projeto Globo Residência",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node src/server.ts",
+    "dev": "set \"AUDD_TOKEN=%npm_config_token%\" && ts-node src/server.ts",
+    "dev:auto": "for /f %i in ('node read_token.js') do set AUDD_TOKEN=%i && ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
