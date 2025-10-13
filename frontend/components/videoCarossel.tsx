@@ -1,6 +1,7 @@
+"use client"
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@heroui/button";
-import VideoCard from "./VideoCard";
+import VideoCard from "./videoCard";
 import { useRef } from "react";
 
 interface Video {
@@ -35,7 +36,7 @@ const VideoCarousel = ({ title, videos }: VideoCarouselProps) => {
         <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
-            size="icon"
+            size="sm"
             className="hover:bg-transparent"
             onClick={() => scroll("left")}
           >
@@ -43,7 +44,7 @@ const VideoCarousel = ({ title, videos }: VideoCarouselProps) => {
           </Button>
           <Button 
             variant="ghost" 
-            size="icon"
+            size="sm"
             className="hover:bg-transparent"
             onClick={() => scroll("right")}
           >
