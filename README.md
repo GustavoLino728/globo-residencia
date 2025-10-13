@@ -6,7 +6,7 @@
 
 O **ContagIA** é uma solução que automatiza a detecção de músicas em conteúdos de mídia, gerando metadados e relatórios precisos para garantir a conformidade de direitos autorais e otimizar o fluxo de trabalho da Pós-Produção.
 
----
+Localização do backend: `backend/`
 
 ## 📖 Índice
 - 🎯 [Sobre o Projeto](#-sobre-o-projeto)  
