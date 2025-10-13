@@ -11,7 +11,7 @@ import {Avatar} from "@heroui/avatar";
 import { usePathname } from "next/navigation";
 import { Link } from "@heroui/link";
 
-export const AcmeLogo = () => {
+export const ContagiaLogo = () => {
   return (
     <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
       <path
@@ -31,7 +31,7 @@ export const Navbar = () => {
     <HeroUINavbar className="bg-black/25">
       <NavbarBrand>
         <Link color="foreground" href="/">
-          <AcmeLogo />
+          <ContagiaLogo />
           <p className="font-bold text-inherit">Contag<span className="text-[#6f1fc6] font-black">IA</span></p>
         </Link>
       </NavbarBrand>
