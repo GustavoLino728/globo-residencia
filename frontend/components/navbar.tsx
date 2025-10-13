@@ -28,7 +28,7 @@ export const Navbar = () => {
   const pathname = usePathname();
 
   return (
-    <HeroUINavbar className="bg-black/25">
+    <HeroUINavbar className="bg-black/65">
       <NavbarBrand>
         <Link color="foreground" href="/">
           <ContagiaLogo />
