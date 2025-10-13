@@ -37,18 +37,18 @@ const VideoCarousel = ({ title, videos }: VideoCarouselProps) => {
           <Button 
             variant="ghost" 
             size="sm"
-            className="hover:bg-transparent"
+            className="bg-white/3"
             onClick={() => scroll("left")}
           >
-            <ChevronLeft className="h-5 w-5 transition-colors hover:text-primary" />
+            <ChevronLeft className="h-5 w-5 transition-colors text-white hover:text-gray-900" />
           </Button>
           <Button 
             variant="ghost" 
             size="sm"
-            className="hover:bg-transparent"
+            className="bg-white/3"
             onClick={() => scroll("right")}
           >
-            <ChevronRight className="h-5 w-5 transition-colors hover:text-primary" />
+            <ChevronRight className="h-5 w-5 transition-colors text-white hover:text-gray-900" />
           </Button>
         </div>
       </div>

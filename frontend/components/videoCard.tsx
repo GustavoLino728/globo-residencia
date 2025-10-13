@@ -10,7 +10,7 @@ interface VideoCardProps {
 const VideoCard = ({ thumbnail, title, duration = "12:34" }: VideoCardProps) => {
   return (
     <div className="group/card relative flex-shrink-0 w-64 cursor-pointer">
-      <div className="relative overflow-hidden rounded-xl bg-[hsl(var(--video-card-background))] transition-all duration-300 group-hover/card:bg-[hsl(var(--video-card-hover))] group-hover/card:scale-105 group-hover/card:shadow-2xl group-hover/card:shadow-primary/20">
+       <div className="relative overflow-hidden rounded-xl bg-[hsl(var(--video-card-background))] transition-all duration-300 group-hover/card:bg-[hsl(var(--video-card-hover))] group-hover/card:scale-105 group-hover/card:shadow-2xl group-hover/card:shadow-white/20">
         <div className="aspect-video relative overflow-hidden">
           <img 
             src={thumbnail} 
@@ -20,7 +20,7 @@ const VideoCard = ({ thumbnail, title, duration = "12:34" }: VideoCardProps) => 
           
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center transform scale-75 group-hover/card:scale-100 transition-transform duration-300">
+          <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center transform scale-75 group-hover/card:scale-100 transition-transform duration-300">
               <Play className="h-6 w-6 text-background ml-1" fill="currentColor" />
             </div>
           </div>
@@ -33,7 +33,7 @@ const VideoCard = ({ thumbnail, title, duration = "12:34" }: VideoCardProps) => 
       </div>
       
       <div className="mt-3 px-1">
-        <h3 className="text-sm font-medium line-clamp-2 text-foreground group-hover/card:text-primary transition-colors">
+      <h3 className="text-sm font-medium line-clamp-2 text-foreground group-hover/card:text-white transition-colors">
           {title}
         </h3>
       </div>
