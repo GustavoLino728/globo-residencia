@@ -169,11 +169,16 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
 
     function extractIsrc(meta: any): string | undefined {
       if (!meta) return undefined;
+      
       return (
         meta.isrc || meta.ISRC ||
         (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.isrc) ||
         (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].isrc) ||
         (meta.result && meta.result.apple_music && meta.result.apple_music.data && meta.result.apple_music.data[0] && meta.result.apple_music.data[0].attributes && meta.result.apple_music.data[0].attributes.isrc) ||
+        (meta.result && meta.result.isrc) || 
+        (meta.result && meta.result.ISRC) ||
+        (meta.spotify && meta.spotify.external_ids && meta.spotify.external_ids.isrc) ||
+        (meta.result && meta.result.spotify && meta.result.spotify.external_ids && meta.result.spotify.external_ids.isrc) ||
         undefined
       );
     }
@@ -185,6 +190,27 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.releaseDate) ||
         (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].release_date) ||
         (meta.result && meta.result.release_date) ||
+        undefined
+      );
+    }
+
+    function extractMusicLink(meta: any): string | undefined {
+      if (!meta) return undefined;
+      // Tenta extrair links de diferentes fontes
+      return (
+        // Links do Spotify
+        (meta.spotify && meta.spotify.external_urls && meta.spotify.external_urls.spotify) ||
+        (meta.result && meta.result.spotify && meta.result.spotify.external_urls && meta.result.spotify.external_urls.spotify) ||
+        // Links do Apple Music
+        (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.url) ||
+        (meta.result && meta.result.apple_music && meta.result.apple_music.data && meta.result.apple_music.data[0] && meta.result.apple_music.data[0].attributes && meta.result.apple_music.data[0].attributes.url) ||
+        // Links do Deezer
+        (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].link) ||
+        (meta.result && meta.result.deezer && meta.result.deezer.data && meta.result.deezer.data[0] && meta.result.deezer.data[0].link) ||
+        // Link do Song
+        meta.song_link || (meta.result && meta.result.song_link) ||
+        // Link genérico
+        meta.url || meta.link || (meta.result && (meta.result.url || meta.result.link)) ||
         undefined
       );
     }
@@ -230,7 +256,20 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       quantidadeSegmentos: segments.length,
       segundosPorSegmento: SEG_SECONDS,
       quantidadeMusicasEncontradas: dedup.length,
-      musicas: dedup.map((m) => ({ inicioSegundos: m.inicioSegundos, fimSegundos: m.fimSegundos, titulo: m.titulo, artista: m.artista, isrc: m.isrc, dataLancamento: m.dataLancamento })),
+      musicas: dedup.map((m) => {
+        // Extrair o link da música a partir dos metadados fonte
+        const link = extractMusicLink(m.fonte);
+        const isrc = m.fonte?.deezer?.isrc;
+        return {
+          inicioSegundos: m.inicioSegundos,
+          fimSegundos: m.fimSegundos,
+          titulo: m.titulo,
+          artista: m.artista,
+          isrc: isrc,
+          dataLancamento: m.dataLancamento,
+          link: link
+        };
+      }),
       resultados: segmentosTrad,
       cronograma: cronograma,
       configAudd: { params: { retorno: AUDD_CONFIG?.params?.return ?? '' } },
