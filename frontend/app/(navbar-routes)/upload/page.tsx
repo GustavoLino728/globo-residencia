@@ -1,5 +1,5 @@
 import AudioUpload from "@/components/inputFile"
-import UploadHistory from '@/components/UploadHistory'
+import UploadHistory from '@/components/uploadHistory'
 
 export default function UploadPage() {
     return(
