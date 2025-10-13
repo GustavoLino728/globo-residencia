@@ -10,10 +10,12 @@ export default function MediaUpload() {
   const [mediaURL, setMediaURL] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const urlRef = useRef<string | null>(null);
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
   const handleFile = (file: File) => {
+    setIsRemoving(false); // Reset removal state when adding a new file
     if (file && (file.type.startsWith("audio/") || file.type.startsWith("video/") || file.name.toLowerCase().endsWith('.mxf'))) {
       setFileName(file.name);
       // Revoga URL anterior se existir
@@ -44,22 +46,28 @@ export default function MediaUpload() {
   };
 
   const handleRemove = () => {
-    // Pausa a reprodução se estiver tocando
-    if (mediaElementRef.current) {
-      mediaElementRef.current.pause();
-      mediaElementRef.current.currentTime = 0;
-    }
-    setFileName(null);
-    setMediaURL(null);
-    setFileType(null);
-    // Revoga URL do objeto
-    if (urlRef.current) {
-      URL.revokeObjectURL(urlRef.current);
-      urlRef.current = null;
-    }
-    // limpa o input de arquivo
-    const input = document.getElementById("media-upload") as HTMLInputElement;
-    if (input) input.value = "";
+    setIsRemoving(true);
+    
+    // Usar setTimeout para dar tempo para a animação acontecer
+    setTimeout(() => {
+      // Pausa a reprodução se estiver tocando
+      if (mediaElementRef.current) {
+        mediaElementRef.current.pause();
+        mediaElementRef.current.currentTime = 0;
+      }
+      setFileName(null);
+      setMediaURL(null);
+      setFileType(null);
+      setIsRemoving(false);
+      // Revoga URL do objeto
+      if (urlRef.current) {
+        URL.revokeObjectURL(urlRef.current);
+        urlRef.current = null;
+      }
+      // limpa o input de arquivo
+      const input = document.getElementById("media-upload") as HTMLInputElement;
+      if (input) input.value = "";
+    }, 500); // Tempo suficiente para a animação ocorrer
   };
 
   // Revoga URL ao desmontar o componente
@@ -108,34 +116,27 @@ export default function MediaUpload() {
           </p>
           
         </div>
-        <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
-          !fileName 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 translate-y-2 pointer-events-none'
-        }`}>
+        <div className="transition-all duration-500 ease-in-out transform flex justify-center">
           <Button
-            className="bg-[#6F1FC6] text-white font-semibold rounded-full px-12 py-4 w-full text-lg"
-            onClick={() => document.getElementById("media-upload")?.click()}
+            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg ${
+              fileName ? 'bg-[#1FC66F]' : 'bg-[#6F1FC6]'
+            }`}
+            onClick={() => {
+              if (fileName) {
+                /* ação de envio aqui */
+              } else {
+                document.getElementById("media-upload")?.click()
+              }
+            }}
           >
-            Fazer upload
-          </Button>
-        </div>
-
-        <div className={`transition-all duration-500 ease-in-out transform flex justify-center ${
-          fileName 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 translate-y-2 pointer-events-none'
-        }`}>
-          <Button
-            className="bg-[#1FC66F] text-white font-semibold rounded-full px-12 py-4 w-full text-lg"
-            onClick={() => {/* ação de envio aqui */}}
-          >
-            Enviar
+            {fileName ? 'Enviar' : 'Fazer upload'}
           </Button>
         </div>
         <div className={`transition-all duration-500 ease-in-out transform ${
           fileName && mediaURL
-            ? 'opacity-100 scale-100 translate-y-0' 
+            ? isRemoving 
+              ? 'opacity-0 scale-95 translate-y-2' // Estado de saída durante remoção
+              : 'opacity-100 scale-100 translate-y-0' 
             : 'opacity-0 scale-95 translate-y-2 pointer-events-none h-0 overflow-hidden'
         }`}>
           <div className="w-full">
@@ -168,13 +169,16 @@ export default function MediaUpload() {
             </div>
             <div className="flex justify-center">
               <Button
-                className="justify-center"
+                className={`justify-center transition-all duration-300 ease-in-out ${
+                  isRemoving ? 'scale-90 opacity-75' : 'scale-100 opacity-100'
+                }`}
                 color="danger"
                 variant="flat"
                 size="sm"
                 onClick={handleRemove}
+                disabled={isRemoving}
               >
-                Remover arquivo
+                {isRemoving ? 'Removendo...' : 'Remover arquivo'}
               </Button>
             </div>
           </div>
