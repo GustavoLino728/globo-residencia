@@ -140,7 +140,7 @@ export default function MediaUpload() {
         }`}>
           <div className="w-full">
             <div className="mb-4">
-              <p className="text-white text-sm mb-2">Arquivo selecionado: {fileName}</p>
+              <p className="text-black text-sm mb-2">Arquivo selecionado: {fileName}</p>
               {fileType?.startsWith("audio/") ? (
                 <audio 
                   controls 

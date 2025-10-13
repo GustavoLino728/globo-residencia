@@ -18,32 +18,45 @@ info: MusicInfo;
 
 
 const MusicInfoCard = ({ info }: MusicInfoCardProps) => {
-return (
+  // Verificação de segurança para evitar erros
+  if (!info) {
+    return (
+      <Card className="w-full bg-card border-none shadow-xl">
+        <CardBody className="p-6">
+          <div className="text-center text-muted-foreground">
+            <p>Nenhuma informação musical disponível.</p>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  return (
     <Card className="w-full bg-card border-none shadow-xl">
-    <CardBody className="p-6">
+      <CardBody className="p-6">
         <div className="space-y-3">
-        <InfoRow label="Música" value={info.musica} highlight />
-        <InfoRow label="Efeito sonoro" value={info.efeitoSonoro} />
-        <InfoRow label="Artista" value={info.artista} />
-        <InfoRow label="Interprete" value={info.interprete} />
-        <InfoRow label="Gravadora" value={info.gravadora} />
-        
-        <div className="pt-2">
+          <InfoRow label="Música" value={info.musica || "N/A"} highlight />
+          <InfoRow label="Efeito sonoro" value={info.efeitoSonoro || "N/A"} />
+          <InfoRow label="Artista" value={info.artista || "N/A"} />
+          <InfoRow label="Interprete" value={info.interprete || "N/A"} />
+          <InfoRow label="Gravadora" value={info.gravadora || "N/A"} />
+          
+          <div className="pt-2">
             <p className="text-sm font-semibold text-card-foreground mb-2">
-            Tempo de Reprodução:
+              Tempo de Reprodução:
             </p>
             <div className="pl-4 space-y-1">
-            <InfoRow label="• Início" value={info.tempoInicio} small />
-            <InfoRow label="• Fim" value={info.tempoFim} small />
+              <InfoRow label="• Início" value={info.tempoInicio || "N/A"} small />
+              <InfoRow label="• Fim" value={info.tempoFim || "N/A"} small />
             </div>
+          </div>
+          
+          <InfoRow label="ID de Registro(ISRC)" value={info.isrc || "N/A"} />
+          <InfoRow label="Tempo total do fonograma" value={info.tempoTotal || "N/A"} />
         </div>
-        
-        <InfoRow label="ID de Registro(ISRC)" value={info.isrc} />
-        <InfoRow label="Tempo total do fonograma" value={info.tempoTotal} />
-        </div>
-    </CardBody>
+      </CardBody>
     </Card>
-);
+  );
 };
 
 interface InfoRowProps {
