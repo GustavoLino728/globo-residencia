@@ -10,45 +10,58 @@ import {  Dropdown,  DropdownTrigger,  DropdownMenu,  DropdownSection,  Dropdown
 import {Avatar} from "@heroui/avatar";
 import { usePathname } from "next/navigation";
 import { Link } from "@heroui/link";
+import {Image} from "@heroui/image"
 
-export const AcmeLogo = () => {
+export const ContagiaLogo = () => {
   return (
-    <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
-      <path
-        clipRule="evenodd"
-        d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-        fill="currentColor"
-        fillRule="evenodd"
-      />
-    </svg>
+    <Image
+      src="/logoWhiteGlobo.png"
+      width={30}
+    />
   );
 };
 
 export const Navbar = () => {
   const pathname = usePathname();
+  
+  // Verificar se está na página de validação para sinalizar Relatórios
+  const isValidationPage = pathname.startsWith("/relatorios/validacao");
 
   return (
-    <HeroUINavbar className="bg-black/25">
+    <HeroUINavbar className="bg-black/65">
       <NavbarBrand>
-        <Link color="foreground" href="/">
-          <AcmeLogo />
+        <Link color="foreground" href="/" className="gap-2">
+          <ContagiaLogo />
+          
           <p className="font-bold text-inherit">Contag<span className="text-[#6f1fc6] font-black">IA</span></p>
         </Link>
       </NavbarBrand>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem isActive={pathname === "/dashboard"}>
-          <Link color={pathname === "/dashboard" ? "secondary" : "foreground"} href="/dashboard">
+          <Link 
+            color="foreground" 
+            href="/dashboard"
+            className={`relative ${pathname === "/dashboard" ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Dashboard
           </Link>
         </NavbarItem>
         <NavbarItem isActive={pathname === "/upload"}>
-          <Link color={pathname === "/upload" ? "secondary" : "foreground"} href="/upload">
+          <Link 
+            color="foreground" 
+            href="/upload"
+            className={`relative ${pathname === "/upload" ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Upload
           </Link>
         </NavbarItem>
-        <NavbarItem isActive={pathname === "/relatorios"}>
-          <Link color={pathname === "/relatorios" ? "secondary" : "foreground"} href="/relatorios">
+        <NavbarItem isActive={pathname === "/relatorios" || isValidationPage}>
+          <Link 
+            color="foreground" 
+            href="/relatorios"
+            className={`relative ${pathname === "/relatorios" || isValidationPage ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Relatórios
           </Link>
         </NavbarItem>
