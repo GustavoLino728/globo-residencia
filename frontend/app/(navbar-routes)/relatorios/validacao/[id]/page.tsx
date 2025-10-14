@@ -75,22 +75,20 @@ const sampleMusicData: Record<string, MusicInfo[]> = {
 // Componente para botões de aprovação
 const ApprovalButtons = ({ onApprove, onReject }: { onApprove: () => void; onReject: () => void }) => {
   return (
-    <div className="flex gap-4 mt-8">
+    <div className="flex gap-4 mt-8 justify-center">
       <Button 
         color="success" 
         variant="solid"
-        size="lg"
         onPress={onApprove}
-        className="flex-1 h-14 text-lg font-semibold rounded-xl"
+        className="w-32 h-10 text-lg text-white font-semibold rounded-xl"
       >
         Aprovar
       </Button>
       <Button 
         color="danger" 
         variant="solid"
-        size="lg"
         onPress={onReject}
-        className="flex-1 h-14 text-lg font-semibold rounded-xl"
+        className="w-32 h-10 text-lg font-semibold rounded-xl"
       >
         Rejeitar
       </Button>
@@ -102,10 +100,9 @@ const ApprovalButtons = ({ onApprove, onReject }: { onApprove: () => void; onRej
 const MusicCounter = ({ current, total }: { current: number; total: number }) => {
   return (
     <Chip 
-      color="primary" 
       variant="flat" 
       size="lg"
-      className="mt-6 bg-purple-600/10 text-purple-600 font-semibold px-6 py-3 text-lg"
+      className="mt-6 text-[#FFFFFFA] font-semibold px-6 py-4 text-lg bg-[#0000005F]"
     >
       {current} de {total} músicas
     </Chip>
@@ -188,10 +185,10 @@ export default function ValidandoPage() {
           Validação {id}
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          {/* Video Player Section */}
-          <div className="flex items-center">
-            <div className="w-full h-150 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
+          {/* Video Player Section - 2/3 da largura */}
+          <div className="lg:col-span-2 flex items-center">
+            <div className="w-full h-full p-8 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -203,8 +200,8 @@ export default function ValidandoPage() {
             </div>
           </div>
 
-          {/* Validation Panel with Glass Effect */}
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl">
+          {/* Validation Panel with Glass Effect - 1/3 da largura */}
+          <div className="lg:col-span-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl w-full">
             <NavigationControls
               currentIndex={currentIndex}
               total={musicInfo.length}
