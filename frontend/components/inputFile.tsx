@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
 import LoadingScreen from "./loadingScreen";
 
 export default function MediaUpload() {
+  const router = useRouter();
   const [fileName, setFileName] = useState<string | null>(null);
   const [mediaURL, setMediaURL] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
@@ -57,10 +59,21 @@ export default function MediaUpload() {
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
-    // Aqui você pode adicionar lógica para redirecionar ou mostrar resultados
     console.log("Upload e análise concluídos!");
-    // Exemplo: redirecionar para página de resultados
-    // router.push('/relatorios');
+    
+    // Usar setTimeout para evitar setState durante render
+    setTimeout(() => {
+      // Gerar um ID único baseado no nome do arquivo e timestamp
+      const fileId = `${Date.now()}-${fileName?.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      
+      // Armazenar o nome do arquivo no sessionStorage para usar na página de validação
+      if (fileName) {
+        sessionStorage.setItem('validationTitle', fileName);
+      }
+      
+      // Redirecionar para a página de validação
+      router.push(`/relatorios/validacao/${fileId}`);
+    }, 100);
   };
 
   const handleRemove = () => {

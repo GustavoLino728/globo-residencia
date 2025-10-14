@@ -25,7 +25,10 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          onComplete?.();
+          // Usar setTimeout para evitar setState durante render
+          setTimeout(() => {
+            onComplete?.();
+          }, 0);
           return 100;
         }
         return prev + 2;

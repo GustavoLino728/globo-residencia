@@ -116,10 +116,32 @@ export default function ValidandoPage() {
   // Busca os dados da música baseado no ID da rota
   const musicInfo = sampleMusicData[id];
 
+  // Verificar se é um arquivo novo (sem dados da API)
+  const isNewFile = !musicInfo;
+  const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
+
+  // Criar dados de música indefinidos para arquivos novos
+  const undefinedMusicData: MusicInfo[] = isNewFile && isNewFileId ? [
+    {
+      musica: "Informação não encontrada",
+      efeitoSonoro: "Não identificado",
+      artista: "Artista desconhecido",
+      interprete: "Intérprete não identificado",
+      gravadora: "Gravadora não identificada",
+      tempoInicio: "00:00",
+      tempoFim: "00:00",
+      isrc: "N/A",
+      tempoTotal: "00:00"
+    }
+  ] : [];
+
+  // Usar dados reais ou dados indefinidos
+  const currentMusicData = musicInfo || undefinedMusicData;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
   const [validatedSongs, setValidatedSongs] = useState<Record<number, 'approved' | 'rejected'>>({});
-  const allSongsValidated = musicInfo ? Object.keys(validatedSongs).length === musicInfo.length : false;
+  const allSongsValidated = currentMusicData ? Object.keys(validatedSongs).length === currentMusicData.length : false;
 
   // Buscar o título do vídeo do sessionStorage
   useEffect(() => {
@@ -136,7 +158,7 @@ export default function ValidandoPage() {
   };
 
   const handleNext = () => {
-    if (musicInfo && currentIndex < musicInfo.length - 1) {
+    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -144,7 +166,7 @@ export default function ValidandoPage() {
   const handleApprove = () => {
     setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'approved' }));
     console.log("Música aprovada!");
-    if (musicInfo && currentIndex < musicInfo.length - 1) {
+    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
   };
@@ -152,37 +174,42 @@ export default function ValidandoPage() {
   const handleReject = () => {
     setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'rejected' }));
     console.log("Música rejeitada!");
-    if (musicInfo && currentIndex < musicInfo.length - 1) {
+    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
   };
 
-  if (!musicInfo) {
+  if (!currentMusicData || currentMusicData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
         <div className="mb-4">
           <h2 className="text-2xl font-semibold text-foreground mb-2">
-            Conteúdo não encontrado
+            {isNewFile && isNewFileId ? "Arquivo em processamento" : "Conteúdo não encontrado"}
           </h2>
           <p className="text-muted-foreground">
-            O ID "{id}" não corresponde a nenhuma validação disponível.
+            {isNewFile && isNewFileId 
+              ? "O arquivo foi carregado mas ainda não foi processado pela API. As informações da música aparecerão como 'não encontradas'."
+              : `O ID "${id}" não corresponde a nenhuma validação disponível.`
+            }
           </p>
         </div>
-        <div className="mt-4">
-          <p className="text-sm text-muted-foreground mb-2">
-            IDs disponíveis para teste:
-          </p>
-          <div className="flex gap-2 flex-wrap justify-center">
-            {Object.keys(sampleMusicData).map((availableId) => (
-              <span
-                key={availableId}
-                className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm"
-              >
-                {availableId}
-              </span>
-            ))}
+        {!isNewFile && (
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground mb-2">
+              IDs disponíveis para teste:
+            </p>
+            <div className="flex gap-2 flex-wrap justify-center">
+              {Object.keys(sampleMusicData).map((availableId) => (
+                <span
+                  key={availableId}
+                  className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm"
+                >
+                  {availableId}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -215,16 +242,30 @@ export default function ValidandoPage() {
 
           {/* Validation Panel with Glass Effect - 1/3 da largura */}
           <div className="lg:col-span-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl w-full">
+            {/* Aviso para arquivos novos */}
+            {isNewFile && isNewFileId && (
+              <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-yellow-200 text-sm font-medium">
+                    Arquivo carregado - Informações da música não identificadas pela API
+                  </p>
+                </div>
+              </div>
+            )}
+
             <NavigationControls
               currentIndex={currentIndex}
-              total={musicInfo.length}
+              total={currentMusicData.length}
               onPrevious={handlePrevious}
               onNext={handleNext}
             />
 
             <div className="mb-6">
               <MusicInfoCard 
-                info={musicInfo[currentIndex]} 
+                info={currentMusicData[currentIndex]} 
                 validationStatus={validatedSongs[currentIndex]}
               />
             </div>
@@ -237,7 +278,7 @@ export default function ValidandoPage() {
             <div className="flex justify-center">
               <MusicCounter
                 current={currentIndex + 1}
-                total={musicInfo.length}
+                total={currentMusicData.length}
               />
             </div>
           </div>
