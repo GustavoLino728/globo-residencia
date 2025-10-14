@@ -60,10 +60,12 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
           <div className="relative">
             <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+                <img 
+                  src="/logoGlobo.png" 
+                  alt="Globo" 
+                  className="w-20 object-contain"
+                />
               </div>
             </div>
           </div>
