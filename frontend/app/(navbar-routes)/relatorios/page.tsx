@@ -1,6 +1,17 @@
+"use client";
 import VideoCarousel from "@/components/videoCarossel";
+import { useRouter } from "next/navigation";
 
 const Index = () => {
+  const router = useRouter();
+
+  // Função para navegar para a página de validação
+  const handleVideoClick = (id: string, title: string) => {
+    // Armazenar o título na sessionStorage para usar na página de validação
+    sessionStorage.setItem('validationTitle', title);
+    router.push(`/relatorios/validacao/${id}`);
+  };
+
   // Mock data for videos
   const notFinishedVideos = [
     {
@@ -81,7 +92,11 @@ const Index = () => {
 
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <VideoCarousel title="Não Finalizados" videos={notFinishedVideos} />
+            <VideoCarousel 
+              title="Não Finalizados" 
+              videos={notFinishedVideos} 
+              onVideoClick={handleVideoClick}
+            />
           </div>
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
             <VideoCarousel title="Finalizados" videos={finishedVideos} />
