@@ -56,7 +56,7 @@ export default function Home() {
           </h1>
 
           <p className="max-w-md text-lg md:text-xl text-gray-300 mb-8">
-            Get personalised insurance plans by answering few simple questions
+          Utilize a Inteligência Artificial para transcrever áudio e gerar sua EDL em segundos.
           </p>
 
           <Button className="bg-[#6F1FC6]  text-white font-bold rounded-full px-17 py-6 transform transition-all duration-300 hover:scale-105">
