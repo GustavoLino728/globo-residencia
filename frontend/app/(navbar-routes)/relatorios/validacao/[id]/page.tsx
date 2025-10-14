@@ -118,6 +118,8 @@ export default function ValidandoPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
+  const [validatedSongs, setValidatedSongs] = useState<Record<number, 'approved' | 'rejected'>>({});
+  const allSongsValidated = musicInfo ? Object.keys(validatedSongs).length === musicInfo.length : false;
 
   // Buscar o título do vídeo do sessionStorage
   useEffect(() => {
@@ -140,6 +142,7 @@ export default function ValidandoPage() {
   };
 
   const handleApprove = () => {
+    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'approved' }));
     console.log("Música aprovada!");
     if (musicInfo && currentIndex < musicInfo.length - 1) {
       setTimeout(() => handleNext(), 500);
@@ -147,6 +150,7 @@ export default function ValidandoPage() {
   };
 
   const handleReject = () => {
+    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'rejected' }));
     console.log("Música rejeitada!");
     if (musicInfo && currentIndex < musicInfo.length - 1) {
       setTimeout(() => handleNext(), 500);
@@ -219,7 +223,10 @@ export default function ValidandoPage() {
             />
 
             <div className="mb-6">
-              <MusicInfoCard info={musicInfo[currentIndex]} />
+              <MusicInfoCard 
+                info={musicInfo[currentIndex]} 
+                validationStatus={validatedSongs[currentIndex]}
+              />
             </div>
 
             <ApprovalButtons
@@ -235,6 +242,23 @@ export default function ValidandoPage() {
             </div>
           </div>
         </div>
+
+        {/* Generate EDL Button */}
+        {allSongsValidated && (
+          <div className="mt-8 flex justify-center">
+            <Button
+              color="primary"
+              variant="solid"
+              onPress={() => {
+                console.log("Gerando EDL...");
+                // Aqui você pode implementar a lógica para gerar o EDL
+              }}
+              className="w-48 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            >
+              Gerar EDL
+            </Button>
+          </div>
+        )}
       </main>
 
       {/* Bottom gradient accent */}
