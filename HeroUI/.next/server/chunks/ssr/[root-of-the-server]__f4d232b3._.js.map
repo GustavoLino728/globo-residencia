@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
-    {"offset": {"line": 23, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Pedro%20Fernandes/Desktop/localToGithub/frontend_globo_residencia/ContagIA/HeroUI/app/%28navbar-routes%29/dashboard/page.tsx"],"sourcesContent":["\r\n\r\nexport default function DashboardPage() {\r\n    return(\r\n        <div>\r\n        </div>\r\n\r\n    )\r\n}"],"names":[],"mappings":";;;;;;AAEe,SAAS;IACpB,qBACI,6TAAC;;;;;AAIT","debugId":null}}]
-}
