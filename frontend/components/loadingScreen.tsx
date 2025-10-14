@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface LoadingScreenProps {
   fileName: string;
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
-const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
-  const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-
+const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
+  // Definir os passos do processo
   const steps = [
     "Enviando arquivo...",
     "Processando mídia...",
@@ -20,33 +18,67 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
     "Finalizando análise..."
   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          onComplete?.();
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
+  // Estado para controlar o progresso e o passo atual
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Refs para controlar o fluxo
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const stepIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev >= steps.length - 1) {
-          clearInterval(stepInterval);
-          return prev;
+  // Função para limpar todos os intervalos
+  const clearAllIntervals = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (stepIntervalRef.current) {
+      clearInterval(stepIntervalRef.current);
+      stepIntervalRef.current = null;
+    }
+  };
+
+  // Efeito para iniciar a simulação de progresso
+  useEffect(() => {
+    console.log("LoadingScreen: Inicializando...");
+    
+    // DEBUG: verificar estado inicial
+    console.log("Estado inicial do progresso:", progress);
+    
+    // Forçar explicitamente a 0%
+    setProgress(0);
+    setCurrentStep(0);
+    
+    // Criar intervalo para aumentar o progresso gradualmente com mais logs
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        const newProgress = prev >= 95 
+          ? 95 
+          : Math.min(95, prev + Math.max(0.2, (95 - prev) / 30));
+        
+        // Log para depuração
+        if (Math.floor(newProgress) % 10 === 0 && Math.floor(newProgress) !== Math.floor(prev)) {
+          console.log(`Progresso atualizado: ${Math.floor(newProgress)}%`);
         }
+        
+        return newProgress;
+      });
+    }, 250);
+    
+    // Criar intervalo para avançar os passos do processo
+    stepIntervalRef.current = setInterval(() => {
+      setCurrentStep((prev) => {
+        if (prev >= steps.length - 1) return steps.length - 1;
         return prev + 1;
       });
-    }, 800);
-
+    }, 2000);
+    
+    // Limpeza ao desmontar o componente
     return () => {
-      clearInterval(interval);
-      clearInterval(stepInterval);
+      console.log("LoadingScreen: Limpando intervalos");
+      clearAllIntervals();
     };
-  }, [onComplete, steps.length]);
+  }, []); // Executar apenas uma vez na montagem
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
@@ -85,7 +117,7 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
         <div className="mb-6">
           <div className="flex justify-between text-sm text-white/60 mb-2">
             <span>Progresso</span>
-            <span>{progress}%</span>
+            <span>{Math.floor(progress)}%</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
             <div 

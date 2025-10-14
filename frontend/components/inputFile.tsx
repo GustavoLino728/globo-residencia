@@ -6,6 +6,8 @@ import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
 import LoadingScreen from "./loadingScreen";
 
+// Removida a função de retry
+
 export default function MediaUpload() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [mediaURL, setMediaURL] = useState<string | null>(null);
@@ -47,20 +49,226 @@ export default function MediaUpload() {
     if (file) handleFile(file);
   };
 
-  const handleUpload = () => {
-    if (fileName) {
+  const handleUpload = async () => {
+    if (!fileName) return;
+    
+    try {
+      // Ativar a tela de loading
       setIsLoading(true);
-      // Simular upload e processamento
-      // A tela de carregamento será mostrada e o onComplete será chamado automaticamente
+      
+      // Obter o arquivo do input
+      const input = document.getElementById("media-upload") as HTMLInputElement;
+      const file = input.files?.[0];
+      
+      if (!file) {
+        alert("Arquivo não encontrado. Por favor, selecione um arquivo novamente.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Log mais detalhado sobre o arquivo
+      console.log("Enviando arquivo:", {
+        nome: file.name, 
+        tamanho: (file.size / (1024 * 1024)).toFixed(2) + "MB", 
+        tipo: file.type,
+        ultimaModificacao: new Date(file.lastModified).toLocaleString()
+      });
+      
+      // Criar um FormData e adicionar o arquivo
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+      
+      try {
+        console.log("Iniciando envio do arquivo...");
+        
+        // Como todos os testes funcionaram, vamos usar uma abordagem mais simples e robusta
+        console.log("Enviando arquivo para o backend...");
+        
+        // Usando 127.0.0.1 como endereço mais confiável
+        const apiUrl = "http://127.0.0.1:8000/buscaAudD";
+        console.log(`Enviando para ${apiUrl}`);
+        
+        // Configuração completa e explícita do fetch
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          body: formData,
+          mode: "cors", // Explicitamente definir o modo CORS
+          cache: "no-cache", // Evitar problemas de cache
+          headers: {
+            // Sem Content-Type explícito pois o navegador define automaticamente para multipart/form-data
+          },
+          signal: AbortSignal.timeout(5 * 60 * 1000) // 5 minutos para arquivos grandes
+        });
+        
+        // Log detalhado da resposta para diagnóstico
+        console.log("Resposta recebida:", {
+          ok: response.ok,
+          status: response.status,
+          statusText: response.statusText
+        });
+        
+        // Verificar se a resposta foi bem-sucedida
+        if (!response.ok) {
+          console.error("Resposta não ok:", response.status, response.statusText);
+          let errorText = "";
+          try {
+            // Tentar obter detalhes do erro
+            const errorData = await response.text();
+            console.error("Detalhes do erro:", errorData);
+            errorText = errorData;
+          } catch (e) {
+            errorText = "Erro desconhecido";
+          }
+          throw new Error(`Erro no upload (${response.status}): ${errorText}`);
+        }
+        
+        if (!response.ok) {
+          console.error("Resposta não ok:", response.status, response.statusText);
+          let errorText = "";
+          try {
+            // Tentar obter detalhes do erro
+            const errorData = await response.text();
+            console.error("Detalhes do erro:", errorData);
+            errorText = errorData;
+          } catch (e) {
+            errorText = "Erro desconhecido";
+          }
+          throw new Error(`Erro no upload (${response.status}): ${errorText}`);
+        }
+        
+        console.log("Resposta recebida, processando JSON...");
+        
+        // Processar a resposta
+        const data = await response.json();
+        console.log("Resposta completa do servidor:", data);
+        
+        // Armazenar a resposta no localStorage para acessar na página de resultados
+        localStorage.setItem("uploadResults", JSON.stringify(data));
+        
+        // Backend terminou o processamento, agora podemos redirecionar
+        console.log("Processamento do backend concluído!");
+        
+        // Manter a tela de loading por um momento para suavidade visual
+        // e então fazer o redirecionamento
+        setTimeout(() => {
+          console.log("Iniciando redirecionamento...");
+          
+          // Redirecionar baseado nos resultados
+          if (data && data.quantidadeMusicasEncontradas > 0) {
+            console.log(`${data.quantidadeMusicasEncontradas} música(s) encontrada(s), redirecionando para validação...`);
+            window.location.href = "/relatorios/validacao/1";
+          } else {
+            console.log("Nenhuma música encontrada, redirecionando para relatórios...");
+            window.location.href = "/relatorios";
+          }
+        }, 1500); // Pequeno delay para suavidade visual
+        
+      } catch (fetchError: any) {
+        console.error("Erro na requisição:", fetchError);
+        
+        // Trata especificamente o erro "Failed to fetch"
+        if (fetchError.message.includes("Failed to fetch") || 
+            fetchError.name === "TypeError" || 
+            fetchError.message.includes("servidor backend não está disponível")) {
+          throw new Error("Não foi possível conectar ao servidor. Verifique se o backend está em execução.");
+        } else {
+          throw new Error(`Erro na comunicação com o servidor: ${fetchError.message}`);
+        }
+      }
+      
+    } catch (error: any) {
+      console.error("Erro ao fazer upload:", error);
+      
+      // Tentar método alternativo de upload com XMLHttpRequest
+      console.log("Tentando método alternativo com XMLHttpRequest...");
+      try {
+        const xhr = new XMLHttpRequest();
+        const formData2 = new FormData();
+        
+        // Obter o arquivo novamente
+        const input = document.getElementById("media-upload") as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) {
+          throw new Error("Arquivo não encontrado");
+        }
+        
+        formData2.append("file", file);
+        
+        // Configurar uma promise para resolver quando o XHR completar
+        const xhrPromise = new Promise((resolve, reject) => {
+          xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(xhr.responseText);
+            } else {
+              reject(new Error(`XHR falhou com status ${xhr.status}: ${xhr.statusText}`));
+            }
+          };
+          
+          xhr.onerror = function() {
+            reject(new Error("Erro de conexão XHR"));
+          };
+        });
+        
+        // Iniciar o XHR
+        xhr.open("POST", "http://127.0.0.1:8000/buscaAudD");
+        xhr.send(formData2);
+        
+        // Aguardar a conclusão
+        const responseText = await xhrPromise;
+        console.log("XHR bem-sucedido, resposta recebida");
+        
+        // Processar a resposta
+        const data = JSON.parse(responseText as string);
+        console.log("Resposta completa do servidor (XHR):", data);
+        
+        localStorage.setItem("uploadResults", JSON.stringify(data));
+        
+        // Backend terminou o processamento, agora podemos redirecionar
+        console.log("Processamento do backend concluído via XHR!");
+        
+        // Manter a tela de loading por um momento e então redirecionar
+        setTimeout(() => {
+          console.log("Iniciando redirecionamento (XHR)...");
+          
+          // Redirecionar baseado nos resultados
+          if (data && data.quantidadeMusicasEncontradas > 0) {
+            console.log(`${data.quantidadeMusicasEncontradas} música(s) encontrada(s), redirecionando para validação...`);
+            window.location.href = "/relatorios/validacao/1";
+          } else {
+            console.log("Nenhuma música encontrada, redirecionando para relatórios...");
+            window.location.href = "/relatorios";
+          }
+        }, 1500); // Pequeno delay para suavidade visual
+        
+        // Retornar para evitar o alerta de erro
+        return;
+      } catch (xhrError: any) {
+        console.error("Método alternativo XHR falhou:", xhrError);
+        // Continuar para o alerta de erro
+      }
+      
+      // Se chegou aqui, ambos os métodos falharam
+      console.error("Erro detalhado:", error);
+      
+      // Construir uma mensagem de erro mais detalhada para diagnóstico
+      let mensagemErro = "Ocorreu um erro ao enviar o arquivo.";
+      let detalhes = "Tente usar a página de diagnóstico para identificar o problema.";
+      
+      if (error.name === "AbortError") {
+        mensagemErro = "O upload demorou muito e foi cancelado.";
+        detalhes = "Tente um arquivo menor ou verifique sua conexão.";
+      } else if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
+        mensagemErro = "Não foi possível conectar ao servidor.";
+        detalhes = "Acesse a página de diagnóstico para testar diferentes métodos de upload.";
+      } else if (error.message) {
+        mensagemErro = `Erro: ${error.message}`;
+      }
+      
+      // Mostrar um alerta
+      alert(`${mensagemErro}\n\n${detalhes}`);
+      
+      setIsLoading(false);
     }
-  };
-
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-    // Aqui você pode adicionar lógica para redirecionar ou mostrar resultados
-    console.log("Upload e análise concluídos!");
-    // Exemplo: redirecionar para página de resultados
-    // router.push('/relatorios');
   };
 
   const handleRemove = () => {
@@ -209,8 +417,7 @@ export default function MediaUpload() {
     {/* Loading Screen */}
     {isLoading && fileName && (
       <LoadingScreen 
-        fileName={fileName} 
-        onComplete={handleLoadingComplete}
+        fileName={fileName}
       />
     )}
     </>

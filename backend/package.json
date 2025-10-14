@@ -26,6 +26,7 @@
 	},
 	"homepage": "https://github.com/GustavoLino728/globo-residencia#readme",
 	"dependencies": {
+		"@fastify/cors": "^11.1.0",
 		"@fastify/multipart": "^9.2.1",
 		"axios": "^1.6.0",
 		"dotenv": "^17.2.3",
