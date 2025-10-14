@@ -14,9 +14,10 @@ interface Video {
 interface VideoCarouselProps {
   title: string;
   videos: Video[];
+  onVideoClick?: (id: string, title: string) => void;
 }
 
-const VideoCarousel = ({ title, videos }: VideoCarouselProps) => {
+const VideoCarousel = ({ title, videos, onVideoClick }: VideoCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -62,9 +63,11 @@ const VideoCarousel = ({ title, videos }: VideoCarouselProps) => {
           {videos.map((video) => (
             <VideoCard
               key={video.id}
+              id={video.id}
               thumbnail={video.thumbnail}
               title={video.title}
               duration={video.duration}
+              onClick={onVideoClick}
             />
           ))}
         </div>
