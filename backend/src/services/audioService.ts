@@ -18,7 +18,7 @@ export function convertMxfToWav(inputPath: string, outputName = 'converted.wav')
   const outputPath = path.join(TMP_DIR, outputName);
   return new Promise<string>((resolve, reject) => {
     ffmpeg(inputPath)
-      .outputOptions(['-acodec pcm_s16le', '-ac 1', '-ar 16000'])
+      .outputOptions(['-acodec pcm_s16le', '-ac 2', '-ar 44100'])
       .on('end', () => resolve(outputPath))
       .on('error', (err: any) => reject(err))
       .save(outputPath);
@@ -54,22 +54,7 @@ export function concatWavs(parts: string[], outName = 'combined.wav') {
         .input(listFile)
         .inputOptions(['-f concat', '-safe 0'])
         .outputOptions(['-c copy'])
-<<<<<<< HEAD
-        .on('end', async () => {
-          try {
-            // após criar o arquivo combinado, remover os segmentos e o arquivo de lista
-            for (const p of parts) {
-              try { await fs.promises.unlink(p); } catch (e) { /* ignore */ }
-            }
-            try { await fs.promises.unlink(listFile); } catch (e) { /* ignore */ }
-          } catch (e) {
-            // não falhar o fluxo caso não consiga apagar
-          }
-          resolve(outPath);
-        })
-=======
         .on('end', () => resolve(outPath))
->>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
         .on('error', (err: any) => reject(err))
         .save(outPath);
     })

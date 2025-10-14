@@ -4,7 +4,7 @@
 	"description": "API de Identificação com AudD - Backend do projeto Globo Residência",
 	"main": "dist/server.js",
 	"scripts": {
-		"dev": "ts-node src/server.ts",
+		"dev": "powershell -Command \"$env:AUDD_TOKEN=$null; ts-node src/server.ts\"",
 		"build": "tsc",
 		"start": "node dist/server.js"
 	},
@@ -12,7 +12,13 @@
 		"type": "git",
 		"url": "git+https://github.com/GustavoLino728/globo-residencia.git"
 	},
-	"keywords": ["fastify", "typescript", "audio", "audd", "identification"],
+	"keywords": [
+		"fastify",
+		"typescript",
+		"audio",
+		"audd",
+		"identification"
+	],
 	"author": "",
 	"license": "ISC",
 	"bugs": {
@@ -21,8 +27,9 @@
 	"homepage": "https://github.com/GustavoLino728/globo-residencia#readme",
 	"dependencies": {
 		"@fastify/multipart": "^9.2.1",
-		"fastify": "^5.6.1",
 		"axios": "^1.6.0",
+		"dotenv": "^17.2.3",
+		"fastify": "^5.6.1",
 		"fluent-ffmpeg": "^2.1.2",
 		"form-data": "^4.0.0",
 		"p-queue": "^7.4.0"

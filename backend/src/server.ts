@@ -1,4 +1,9 @@
+import * as dotenv from 'dotenv';
 import Fastify from 'fastify';
+
+// Força a recarga do arquivo .env e limpa qualquer variável de ambiente existente
+delete process.env.AUDD_TOKEN;
+dotenv.config();
 import multipart from '@fastify/multipart';
 import fileRoutes from './routes/fileRoutes';
 
@@ -33,3 +38,5 @@ fastify.listen({ port: 8000 }, (err, address) => {
   }
   console.log(`Servidor rodando na porta 8000`);
 });
+
+console.log('AUDD_TOKEN:', process.env.AUDD_TOKEN);
