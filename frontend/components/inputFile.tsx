@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
@@ -9,6 +10,7 @@ import LoadingScreen from "./loadingScreen";
 // Removida a função de retry
 
 export default function MediaUpload() {
+  const router = useRouter();
   const [fileName, setFileName] = useState<string | null>(null);
   const [mediaURL, setMediaURL] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
