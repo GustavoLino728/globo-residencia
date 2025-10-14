@@ -17,6 +17,7 @@ export default function MediaUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
   const urlRef = useRef<string | null>(null);
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
@@ -422,6 +423,15 @@ export default function MediaUpload() {
         fileName={fileName}
       />
     )}
+
+    {/* Notification */}
+    <Notification
+      isVisible={showNotification}
+      message={`${fileName} carregado com sucesso! Redirecionando para validação...`}
+      type="success"
+      duration={3000}
+      onClose={() => setShowNotification(false)}
+    />
     </>
   );
 }

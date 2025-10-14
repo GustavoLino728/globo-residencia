@@ -22,7 +22,7 @@ declare module "@react-types/shared" {
 
 export function Providers({children}: { children: React.ReactNode }) {
   return (
-    <HeroUIProvider>
+    <HeroUIProvider disableRipple>
       {children}
     </HeroUIProvider>
   )

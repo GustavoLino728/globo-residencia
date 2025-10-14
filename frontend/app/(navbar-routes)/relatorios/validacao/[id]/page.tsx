@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import NavigationControls from "@/components/navigationControl";
+import EDLDownloadModal from "@/components/edlDownloadModal";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 
@@ -337,8 +338,8 @@ export default function ValidandoPage() {
               color="primary"
               variant="solid"
               onPress={() => {
-                console.log("Gerando EDL...");
-                // Aqui você pode implementar a lógica para gerar o EDL
+                console.log("Abrindo modal de download EDL...");
+                setShowEDLModal(true);
               }}
               className="w-48 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
@@ -350,6 +351,14 @@ export default function ValidandoPage() {
 
       {/* Bottom gradient accent */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
+
+      {/* EDL Download Modal */}
+      <EDLDownloadModal
+        isOpen={showEDLModal}
+        onClose={() => setShowEDLModal(false)}
+        fileName={validationTitle}
+        validationTitle={validationTitle}
+      />
     </div>
   );
 }
