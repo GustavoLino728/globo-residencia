@@ -157,9 +157,7 @@ export default function MediaUpload() {
         </div>
         <div className="transition-all duration-500 ease-in-out transform flex justify-center">
           <Button
-            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg ${
-              fileName ? 'bg-[#1FC66F]' : 'bg-[#6F1FC6]'
-            }`}
+            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
             onClick={() => {
               if (fileName) {
                 handleUpload();
