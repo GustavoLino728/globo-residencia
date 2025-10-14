@@ -36,17 +36,19 @@ const VideoCarousel = ({ title, videos, onVideoClick }: VideoCarouselProps) => {
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         <div className="flex items-center gap-2">
           <Button 
-            variant="ghost" 
+            variant="light" 
             size="sm"
+            color="secondary"
             className="bg-white/3"
             onClick={() => scroll("left")}
           >
             <ChevronLeft className="h-5 w-5 transition-colors text-white hover:text-gray-900" />
           </Button>
           <Button 
-            variant="ghost" 
+            variant="light" 
             size="sm"
             className="bg-white/3"
+            color="secondary"
             onClick={() => scroll("right")}
           >
             <ChevronRight className="h-5 w-5 transition-colors text-white hover:text-gray-900" />
