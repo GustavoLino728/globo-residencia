@@ -105,7 +105,7 @@ const MusicCounter = ({ current, total }: { current: number; total: number }) =>
       color="primary" 
       variant="flat" 
       size="lg"
-      className="mt-6 bg-purple-600/10 text-purple-600 font-semibold px-4 py-2"
+      className="mt-6 bg-purple-600/10 text-purple-600 font-semibold px-6 py-3 text-lg"
     >
       {current} de {total} músicas
     </Chip>
@@ -185,13 +185,13 @@ export default function ValidandoPage() {
       
       <main className="flex-1 p-8 relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-white text-center">
-          Projeto {id}
+          Validação {id}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Video Player Section */}
-          <div className="flex items-start">
-            <div className="w-full h-64 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
+          <div className="flex items-center">
+            <div className="w-full h-150 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">

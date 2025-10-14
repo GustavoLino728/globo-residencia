@@ -33,7 +33,7 @@ const NavigationControls = ({
         color="secondary"
         variant="flat"
         size="lg"
-        className="bg-purple-600 text-white font-semibold px-8 py-2 text-base"
+        className="w-12 h-12 bg-purple-600 text-white font-semibold px-8 py-2 text-base"
       >
         Música Atual
       </Chip>
