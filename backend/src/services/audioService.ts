@@ -54,7 +54,22 @@ export function concatWavs(parts: string[], outName = 'combined.wav') {
         .input(listFile)
         .inputOptions(['-f concat', '-safe 0'])
         .outputOptions(['-c copy'])
+<<<<<<< HEAD
         .on('end', () => resolve(outPath))
+=======
+        .on('end', async () => {
+          try {
+            // após criar o arquivo combinado, remover os segmentos e o arquivo de lista
+            for (const p of parts) {
+              try { await fs.promises.unlink(p); } catch (e) { /* ignore */ }
+            }
+            try { await fs.promises.unlink(listFile); } catch (e) { /* ignore */ }
+          } catch (e) {
+            // não falhar o fluxo caso não consiga apagar
+          }
+          resolve(outPath);
+        })
+>>>>>>> 938085932c8bdf500bce4a4b3b513929255631b8
         .on('error', (err: any) => reject(err))
         .save(outPath);
     })

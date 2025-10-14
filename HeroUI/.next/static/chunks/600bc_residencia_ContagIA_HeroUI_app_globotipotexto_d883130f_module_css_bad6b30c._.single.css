@@ -1,0 +1,25 @@
+/* [project]/Desktop/localToGithub/frontend_globo_residencia/ContagIA/HeroUI/app/globotipotexto_d883130f.module.css [app-client] (css) */
+@font-face {
+  font-family: globotipoTexto;
+  src: url("../media/Globotipo_Texto-s.p.d3232585.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: globotipoTexto Fallback;
+  src: local(Arial);
+  ascent-override: 94.51%;
+  descent-override: 37.81%;
+  line-gap-override: 0.0%;
+  size-adjust: 105.8%;
+}
+
+.globotipotexto_d883130f-module__wlvlVG__className {
+  font-family: globotipoTexto, globotipoTexto Fallback;
+}
+
+.globotipotexto_d883130f-module__wlvlVG__variable {
+  --font-globotipo: "globotipoTexto", "globotipoTexto Fallback";
+}
+
+/*# sourceMappingURL=600bc_residencia_ContagIA_HeroUI_app_globotipotexto_d883130f_module_css_bad6b30c._.single.css.map*/

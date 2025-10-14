@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/Desktop/localToGithub/frontend_globo_residencia/ContagIA/HeroUI/app/globotipotexto_d883130f.module.css"],"sourcesContent":["@font-face {\n    font-family: 'globotipoTexto';\n    src: url('@vercel/turbopack-next/internal/font/local/font?{%22path%22:%22../public/fonts/Globotipo-Texto.woff2%22,%22preload%22:true,%22has_size_adjust%22:true}') format('woff2');\n    font-display: swap;\n    \n}\n\n@font-face {\n    font-family: 'globotipoTexto Fallback';\n    src: local(\"Arial\");\n    ascent-override: 94.51%;\ndescent-override: 37.81%;\nline-gap-override: 0.00%;\nsize-adjust: 105.80%;\n\n}\n\n.className {\n    font-family: 'globotipoTexto', 'globotipoTexto Fallback';\n    \n}\n.variable {\n    --font-globotipo: 'globotipoTexto', 'globotipoTexto Fallback';\n}\n\n"],"names":[],"mappings":"AAAA;;;;;;AAOA;;;;;;;;;AAUA;;;;AAIA"}}]
+}
