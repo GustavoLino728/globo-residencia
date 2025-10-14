@@ -23,6 +23,9 @@ export const ContagiaLogo = () => {
 
 export const Navbar = () => {
   const pathname = usePathname();
+  
+  // Verificar se está na página de validação para sinalizar Relatórios
+  const isValidationPage = pathname.startsWith("/relatorios/validacao");
 
   return (
     <HeroUINavbar className="bg-black/65">
@@ -36,17 +39,29 @@ export const Navbar = () => {
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem isActive={pathname === "/dashboard"}>
-          <Link color={pathname === "/dashboard" ? "secondary" : "foreground"} href="/dashboard">
+          <Link 
+            color="foreground" 
+            href="/dashboard"
+            className={`relative ${pathname === "/dashboard" ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Dashboard
           </Link>
         </NavbarItem>
         <NavbarItem isActive={pathname === "/upload"}>
-          <Link color={pathname === "/upload" ? "secondary" : "foreground"} href="/upload">
+          <Link 
+            color="foreground" 
+            href="/upload"
+            className={`relative ${pathname === "/upload" ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Upload
           </Link>
         </NavbarItem>
-        <NavbarItem isActive={pathname === "/relatorios"}>
-          <Link color={pathname === "/relatorios" ? "secondary" : "foreground"} href="/relatorios">
+        <NavbarItem isActive={pathname === "/relatorios" || isValidationPage}>
+          <Link 
+            color="foreground" 
+            href="/relatorios"
+            className={`relative ${pathname === "/relatorios" || isValidationPage ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white" : ""}`}
+          >
             Relatórios
           </Link>
         </NavbarItem>
