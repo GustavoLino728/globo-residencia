@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
+import LoadingScreen from "./loadingScreen";
 
 export default function MediaUpload() {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -11,6 +12,7 @@ export default function MediaUpload() {
   const [fileType, setFileType] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const urlRef = useRef<string | null>(null);
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
@@ -43,6 +45,22 @@ export default function MediaUpload() {
 
     const file = e.dataTransfer.files?.[0];
     if (file) handleFile(file);
+  };
+
+  const handleUpload = () => {
+    if (fileName) {
+      setIsLoading(true);
+      // Simular upload e processamento
+      // A tela de carregamento será mostrada e o onComplete será chamado automaticamente
+    }
+  };
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+    // Aqui você pode adicionar lógica para redirecionar ou mostrar resultados
+    console.log("Upload e análise concluídos!");
+    // Exemplo: redirecionar para página de resultados
+    // router.push('/relatorios');
   };
 
   const handleRemove = () => {
@@ -80,6 +98,7 @@ export default function MediaUpload() {
   }, []);
 
   return (
+    <>
     <Card
       className="max-w-md mx-auto p-8 rounded-2xl bg-white text-center border-2 border-solid border-[#4B4B53] mt-20 mb-20"
       onDragOver={(e) => {
@@ -123,7 +142,7 @@ export default function MediaUpload() {
             }`}
             onClick={() => {
               if (fileName) {
-                /* ação de envio aqui */
+                handleUpload();
               } else {
                 document.getElementById("media-upload")?.click()
               }
@@ -186,5 +205,14 @@ export default function MediaUpload() {
 
       </CardBody>
     </Card>
+
+    {/* Loading Screen */}
+    {isLoading && fileName && (
+      <LoadingScreen 
+        fileName={fileName} 
+        onComplete={handleLoadingComplete}
+      />
+    )}
+    </>
   );
 }
