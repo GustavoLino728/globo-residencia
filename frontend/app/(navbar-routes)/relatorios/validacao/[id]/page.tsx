@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import NavigationControls from "@/components/navigationControl";
@@ -117,6 +117,15 @@ export default function ValidandoPage() {
   const musicInfo = sampleMusicData[id];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
+
+  // Buscar o título do vídeo do sessionStorage
+  useEffect(() => {
+    const title = sessionStorage.getItem('validationTitle');
+    if (title) {
+      setValidationTitle(title);
+    }
+  }, []);
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -182,7 +191,7 @@ export default function ValidandoPage() {
       
       <main className="flex-1 p-8 relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-white text-center">
-          Validação {id}
+          {validationTitle}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
