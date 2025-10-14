@@ -1,4 +1,146 @@
 
+"use client";
+import MusicStats from "@/components/musicStats";
+import MusicCharts from "@/components/musicCharts";
+import { MusicInfo } from "@/components/validationCard";
+
+// Dados de exemplo baseados nos dados existentes do sistema
+const sampleMusicData: MusicInfo[] = [
+  {
+    musica: "Bohemian Rhapsody",
+    efeitoSonoro: "Reverb suave",
+    artista: "Queen",
+    interprete: "Freddie Mercury",
+    gravadora: "EMI Records",
+    tempoInicio: "00:15",
+    tempoFim: "03:45",
+    isrc: "GBUM71029678",
+    tempoTotal: "05:55"
+  },
+  {
+    musica: "We Will Rock You",
+    efeitoSonoro: "Stomp clap",
+    artista: "Queen",
+    interprete: "Freddie Mercury",
+    gravadora: "EMI Records",
+    tempoInicio: "00:00",
+    tempoFim: "02:03",
+    isrc: "GBUM71029679",
+    tempoTotal: "02:03"
+  },
+  {
+    musica: "Imagine",
+    efeitoSonoro: "Piano natural",
+    artista: "John Lennon",
+    interprete: "John Lennon",
+    gravadora: "Apple Records",
+    tempoInicio: "00:00",
+    tempoFim: "03:07",
+    isrc: "USRC17607839",
+    tempoTotal: "03:07"
+  },
+  {
+    musica: "Billie Jean",
+    efeitoSonoro: "Bass sintético",
+    artista: "Michael Jackson",
+    interprete: "Michael Jackson",
+    gravadora: "Epic Records",
+    tempoInicio: "00:30",
+    tempoFim: "04:54",
+    isrc: "USUM70903642",
+    tempoTotal: "04:54"
+  },
+  {
+    musica: "Beat It",
+    efeitoSonoro: "Guitar solo",
+    artista: "Michael Jackson",
+    interprete: "Michael Jackson",
+    gravadora: "Epic Records",
+    tempoInicio: "00:00",
+    tempoFim: "04:18",
+    isrc: "USUM70903643",
+    tempoTotal: "04:18"
+  },
+  // Dados adicionais para demonstrar estatísticas
+  {
+    musica: "Bohemian Rhapsody",
+    efeitoSonoro: "Reverb suave",
+    artista: "Queen",
+    interprete: "Freddie Mercury",
+    gravadora: "EMI Records",
+    tempoInicio: "00:15",
+    tempoFim: "03:45",
+    isrc: "GBUM71029678",
+    tempoTotal: "05:55"
+  },
+  {
+    musica: "We Will Rock You",
+    efeitoSonoro: "Stomp clap",
+    artista: "Queen",
+    interprete: "Freddie Mercury",
+    gravadora: "EMI Records",
+    tempoInicio: "00:00",
+    tempoFim: "02:03",
+    isrc: "GBUM71029679",
+    tempoTotal: "02:03"
+  },
+  {
+    musica: "Billie Jean",
+    efeitoSonoro: "Bass sintético",
+    artista: "Michael Jackson",
+    interprete: "Michael Jackson",
+    gravadora: "Epic Records",
+    tempoInicio: "00:30",
+    tempoFim: "04:54",
+    isrc: "USUM70903642",
+    tempoTotal: "04:54"
+  },
+  {
+    musica: "Hotel California",
+    efeitoSonoro: "Guitar acústica",
+    artista: "Eagles",
+    interprete: "Eagles",
+    gravadora: "Asylum Records",
+    tempoInicio: "00:00",
+    tempoFim: "06:30",
+    isrc: "USRC17607840",
+    tempoTotal: "06:30"
+  },
+  {
+    musica: "Sweet Child O' Mine",
+    efeitoSonoro: "Guitar solo",
+    artista: "Guns N' Roses",
+    interprete: "Guns N' Roses",
+    gravadora: "Geffen Records",
+    tempoInicio: "00:00",
+    tempoFim: "05:56",
+    isrc: "USGF18800001",
+    tempoTotal: "05:56"
+  },
+  {
+    musica: "Imagine",
+    efeitoSonoro: "Piano natural",
+    artista: "John Lennon",
+    interprete: "John Lennon",
+    gravadora: "Apple Records",
+    tempoInicio: "00:00",
+    tempoFim: "03:07",
+    isrc: "USRC17607839",
+    tempoTotal: "03:07"
+  },
+  {
+    musica: "Hotel California",
+    efeitoSonoro: "Guitar acústica",
+    artista: "Eagles",
+    interprete: "Eagles",
+    gravadora: "Asylum Records",
+    tempoInicio: "00:00",
+    tempoFim: "06:30",
+    isrc: "USRC17607840",
+    tempoTotal: "06:30"
+  }
+];
+
 export default function DashboardPage() {
     return(
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative overflow-hidden">
@@ -7,25 +149,24 @@ export default function DashboardPage() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
             
             <main className="flex-1 p-8 relative z-10">
-                <h1 className="text-4xl font-bold mb-8 text-white text-center">
-                    Dashboard
-                </h1>
-
                 <div className="max-w-7xl mx-auto">
-                    <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-                        <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center">
-                                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                                </svg>
-                            </div>
-                            <h2 className="text-2xl font-semibold text-white mb-4">
-                                Bem-vindo ao Dashboard
-                            </h2>
-                            <p className="text-white/80 text-lg">
-                                Gerencie seus projetos e acompanhe o progresso
-                            </p>
-                        </div>
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-white mb-4">
+                            Dashboard de Músicas
+                        </h1>
+                        <p className="text-white/80 text-lg">
+                            Análise das músicas mais utilizadas nos relatórios
+                        </p>
+                    </div>
+
+                    {/* Estatísticas das músicas */}
+                    <div className="mb-8">
+                        <MusicStats musicData={sampleMusicData} />
+                    </div>
+
+                    {/* Gráficos e visualizações */}
+                    <div className="mb-8">
+                        <MusicCharts musicData={sampleMusicData} />
                     </div>
                 </div>
             </main>
