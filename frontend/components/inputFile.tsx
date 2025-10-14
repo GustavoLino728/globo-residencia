@@ -6,6 +6,7 @@ import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
 import LoadingScreen from "./loadingScreen";
+import Notification from "./notification";
 
 export default function MediaUpload() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function MediaUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
   const urlRef = useRef<string | null>(null);
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
@@ -61,6 +63,9 @@ export default function MediaUpload() {
     setIsLoading(false);
     console.log("Upload e análise concluídos!");
     
+    // Mostrar notificação de sucesso
+    setShowNotification(true);
+    
     // Usar setTimeout para evitar setState durante render
     setTimeout(() => {
       // Gerar um ID único baseado no nome do arquivo e timestamp
@@ -71,8 +76,10 @@ export default function MediaUpload() {
         sessionStorage.setItem('validationTitle', fileName);
       }
       
-      // Redirecionar para a página de validação
-      router.push(`/relatorios/validacao/${fileId}`);
+      // Redirecionar para a página de validação após um pequeno delay para mostrar a notificação
+      setTimeout(() => {
+        router.push(`/relatorios/validacao/${fileId}`);
+      }, 2000); // 2 segundos para mostrar a notificação
     }, 100);
   };
 
@@ -226,6 +233,15 @@ export default function MediaUpload() {
         onComplete={handleLoadingComplete}
       />
     )}
+
+    {/* Notification */}
+    <Notification
+      isVisible={showNotification}
+      message={`${fileName} carregado com sucesso! Redirecionando para validação...`}
+      type="success"
+      duration={3000}
+      onClose={() => setShowNotification(false)}
+    />
     </>
   );
 }

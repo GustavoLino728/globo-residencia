@@ -1,6 +1,7 @@
 "use client";
 import { Card, CardBody } from "@heroui/card";
 import { MusicInfo } from "./validationCard";
+import { useMemo } from "react";
 
 interface MusicStatsProps {
   musicData: MusicInfo[];
@@ -15,62 +16,67 @@ interface MusicUsage {
 }
 
 const MusicStats = ({ musicData }: MusicStatsProps) => {
-  // Processar dados para encontrar músicas mais utilizadas
-  const musicUsageMap = new Map<string, MusicUsage>();
+  // Otimizar cálculos com useMemo
+  const { sortedMusic, totalMusics, uniqueMusics, totalDuration } = useMemo(() => {
+    // Processar dados para encontrar músicas mais utilizadas
+    const musicUsageMap = new Map<string, MusicUsage>();
 
-  musicData.forEach(music => {
-    const key = `${music.musica}-${music.artista}`;
-    if (musicUsageMap.has(key)) {
-      const existing = musicUsageMap.get(key)!;
-      existing.count += 1;
-      existing.totalDuration += parseTimeToSeconds(music.tempoTotal);
-    } else {
-      musicUsageMap.set(key, {
-        musica: music.musica,
-        artista: music.artista,
-        count: 1,
-        totalDuration: parseTimeToSeconds(music.tempoTotal),
-        gravadora: music.gravadora
-      });
-    }
-  });
+    musicData.forEach(music => {
+      const key = `${music.musica}-${music.artista}`;
+      if (musicUsageMap.has(key)) {
+        const existing = musicUsageMap.get(key)!;
+        existing.count += 1;
+        existing.totalDuration += parseTimeToSeconds(music.tempoTotal);
+      } else {
+        musicUsageMap.set(key, {
+          musica: music.musica,
+          artista: music.artista,
+          count: 1,
+          totalDuration: parseTimeToSeconds(music.tempoTotal),
+          gravadora: music.gravadora
+        });
+      }
+    });
 
-  // Converter para array e ordenar por frequência
-  const sortedMusic = Array.from(musicUsageMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Top 10
+    // Converter para array e ordenar por frequência
+    const sortedMusic = Array.from(musicUsageMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10
 
-  // Calcular estatísticas gerais
-  const totalMusics = musicData.length;
-  const uniqueMusics = musicUsageMap.size;
-  const totalDuration = musicData.reduce((acc, music) => 
-    acc + parseTimeToSeconds(music.tempoTotal), 0);
+    // Calcular estatísticas gerais
+    const totalMusics = musicData.length;
+    const uniqueMusics = musicUsageMap.size;
+    const totalDuration = musicData.reduce((acc, music) => 
+      acc + parseTimeToSeconds(music.tempoTotal), 0);
+
+    return { sortedMusic, totalMusics, uniqueMusics, totalDuration };
+  }, [musicData]);
 
   return (
     <div className="space-y-6">
-      {/* Cards de estatísticas gerais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-          <CardBody className="text-center p-6">
-            <div className="text-3xl font-bold text-white mb-2">{totalMusics}</div>
-            <div className="text-white/80">Total de Músicas</div>
-          </CardBody>
-        </Card>
+        {/* Cards de estatísticas gerais */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+            <CardBody className="text-center p-6">
+              <div className="text-3xl font-bold text-white mb-2">{totalMusics}</div>
+              <div className="text-white/80">Total de Músicas</div>
+            </CardBody>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-          <CardBody className="text-center p-6">
-            <div className="text-3xl font-bold text-white mb-2">{uniqueMusics}</div>
-            <div className="text-white/80">Músicas Únicas</div>
-          </CardBody>
-        </Card>
+          <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
+            <CardBody className="text-center p-6">
+              <div className="text-3xl font-bold text-white mb-2">{uniqueMusics}</div>
+              <div className="text-white/80">Músicas Únicas</div>
+            </CardBody>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30">
-          <CardBody className="text-center p-6">
-            <div className="text-3xl font-bold text-white mb-2">{formatTime(totalDuration)}</div>
-            <div className="text-white/80">Duração Total</div>
-          </CardBody>
-        </Card>
-      </div>
+          <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30">
+            <CardBody className="text-center p-6">
+              <div className="text-3xl font-bold text-white mb-2">{formatTime(totalDuration)}</div>
+              <div className="text-white/80">Duração Total</div>
+            </CardBody>
+          </Card>
+        </div>
 
       {/* Top músicas mais utilizadas */}
       <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
