@@ -102,7 +102,7 @@ const MusicCounter = ({ current, total }: { current: number; total: number }) =>
     <Chip 
       variant="flat" 
       size="lg"
-      className="mt-6 text-[#FFFFFFA] font-semibold px-6 py-4 text-lg bg-[#0000005F]"
+      className="mt-6 text-[#FFFFFFA] font-semibold px-6 py-4 text-lg bg-purple-600/0"
     >
       {current} de {total} músicas
     </Chip>
