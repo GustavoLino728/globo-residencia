@@ -8,6 +8,7 @@ import { enqueue } from '../services/queueService';
 
 export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyReply) {
   const LOG_DIR = path.join(process.cwd(), 'tmp_audio');
+<<<<<<< HEAD
   // Não criar nem gravar process.log — appendLog é no-op
   try {
     // garantir que o diretório tmp_audio exista
@@ -25,18 +26,37 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   // Este endpoint aceita multipart/form-data com `file`, raw binary ou JSON base64
   let inputPath: string;
   let originalFilename = '';
+=======
+  const LOG_FILE = path.join(LOG_DIR, 'process.log');
+  const appendLog = (m: string) => {
+    try {
+      if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+      fs.appendFileSync(LOG_FILE, `[${new Date().toISOString()}] ${m}\n`);
+    } catch (e) {
+      // ignore
+    }
+  };
+  appendLog('Received /buscaAudD request');
+
+  // Este endpoint aceita multipart/form-data com `file`, raw binary ou JSON base64
+  let inputPath: string;
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
   const contentType = (request.headers['content-type'] || '').toString();
   if (contentType.includes('multipart/form-data')) {
     const file = await (request as any).file();
     if (!file) return reply.status(400).send({ error: 'Nenhum arquivo multipart recebido' });
     appendLog('Saving multipart upload to disk');
     inputPath = await saveFile(file);
+<<<<<<< HEAD
     originalFilename = file.filename || '';
+=======
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
     appendLog('Saved upload to ' + inputPath);
   } else if (contentType.includes('application/octet-stream') || contentType.startsWith('audio/') || contentType.startsWith('video/')) {
     const buf = request.body as Buffer;
     if (!buf || !Buffer.isBuffer(buf) || buf.length === 0) return reply.status(400).send({ error: 'Empty binary body' });
     appendLog('Saving raw binary body to disk');
+<<<<<<< HEAD
     // tentar obter nome original via header opcional 'x-filename'
     const headerFilename = (request.headers['x-filename'] || '').toString();
     const filename = headerFilename || `upload-${Date.now()}.mxf`;
@@ -44,18 +64,29 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     fs.writeFileSync(filePath, buf);
     inputPath = filePath;
     originalFilename = filename;
+=======
+    const filename = `upload-${Date.now()}.mxf`;
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    fs.writeFileSync(filePath, buf);
+    inputPath = filePath;
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
     appendLog('Saved raw upload to ' + inputPath);
   } else {
     const body = request.body as any;
     if (!body || !body.data) return reply.status(400).send({ error: 'Missing data (base64) in body' });
     appendLog('Saving base64 upload to disk');
+<<<<<<< HEAD
     const provided = body.filename || `upload-${Date.now()}.mxf`;
     inputPath = await saveBase64ToFile(body.data, provided);
     originalFilename = provided;
+=======
+    inputPath = await saveBase64ToFile(body.data, body.filename || 'input.mxf');
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
     appendLog('Saved base64 upload to ' + inputPath);
   }
 
   try {
+<<<<<<< HEAD
   appendLog('Starting convertMxfToWav for ' + inputPath);
   // decidir nomes: queremos que o WAV final tenha o mesmo nome base do arquivo MXF
   const baseName = originalFilename ? path.parse(originalFilename).name : `upload-${Date.now()}`;
@@ -63,6 +94,11 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   const combinedName = `${baseName}.wav`;
   const wavPath = await convertMxfToWav(inputPath, convertedName);
   appendLog('Converted to wav: ' + wavPath);
+=======
+    appendLog('Starting convertMxfToWav for ' + inputPath);
+    const wavPath = await convertMxfToWav(inputPath, 'converted.wav');
+    appendLog('Converted to wav: ' + wavPath);
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 
     const SEG_SECONDS = 20;
     appendLog(`Starting splitWav for ${wavPath} with segmentSeconds=${SEG_SECONDS}`);
@@ -88,12 +124,18 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       results.push({ segment: seg, index: i, auddResponse: auddRes });
     }
 
+<<<<<<< HEAD
   appendLog('Starting concatWavs');
   const combined = await concatWavs(segments, combinedName);
   appendLog('Concat finished: ' + combined);
 
   // remover o WAV convertido temporário (não queremos mantê-lo)
   try { await fs.promises.unlink(wavPath); } catch (e) { /* ignore */ }
+=======
+    appendLog('Starting concatWavs');
+    const combined = await concatWavs(segments, 'combined.wav');
+    appendLog('Concat finished: ' + combined);
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 
     // construir cronograma
     const found: Array<any> = [];
@@ -164,21 +206,17 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       }
     }
 
+<<<<<<< HEAD
     // Consolidar músicas encontradas: transformar `found` em uma lista de eventos com início/fim e metadados
   const musicasEncontradas: Array<{ inicioSegundos: number; fimSegundos: number; titulo?: string; artista?: string; isrc?: string; dataLancamento?: string; fonte?: any }> = [];
 
     function extractIsrc(meta: any): string | undefined {
       if (!meta) return undefined;
-      
       return (
         meta.isrc || meta.ISRC ||
         (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.isrc) ||
         (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].isrc) ||
         (meta.result && meta.result.apple_music && meta.result.apple_music.data && meta.result.apple_music.data[0] && meta.result.apple_music.data[0].attributes && meta.result.apple_music.data[0].attributes.isrc) ||
-        (meta.result && meta.result.isrc) || 
-        (meta.result && meta.result.ISRC) ||
-        (meta.spotify && meta.spotify.external_ids && meta.spotify.external_ids.isrc) ||
-        (meta.result && meta.result.spotify && meta.result.spotify.external_ids && meta.result.spotify.external_ids.isrc) ||
         undefined
       );
     }
@@ -190,27 +228,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.releaseDate) ||
         (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].release_date) ||
         (meta.result && meta.result.release_date) ||
-        undefined
-      );
-    }
-
-    function extractMusicLink(meta: any): string | undefined {
-      if (!meta) return undefined;
-      // Tenta extrair links de diferentes fontes
-      return (
-        // Links do Spotify
-        (meta.spotify && meta.spotify.external_urls && meta.spotify.external_urls.spotify) ||
-        (meta.result && meta.result.spotify && meta.result.spotify.external_urls && meta.result.spotify.external_urls.spotify) ||
-        // Links do Apple Music
-        (meta.apple_music && meta.apple_music.data && meta.apple_music.data[0] && meta.apple_music.data[0].attributes && meta.apple_music.data[0].attributes.url) ||
-        (meta.result && meta.result.apple_music && meta.result.apple_music.data && meta.result.apple_music.data[0] && meta.result.apple_music.data[0].attributes && meta.result.apple_music.data[0].attributes.url) ||
-        // Links do Deezer
-        (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].link) ||
-        (meta.result && meta.result.deezer && meta.result.deezer.data && meta.result.deezer.data[0] && meta.result.deezer.data[0].link) ||
-        // Link do Song
-        meta.song_link || (meta.result && meta.result.song_link) ||
-        // Link genérico
-        meta.url || meta.link || (meta.result && (meta.result.url || meta.result.link)) ||
         undefined
       );
     }
@@ -251,25 +268,17 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     }
 
     // cronograma permanece com inicioSegundos/fimSegundos
+=======
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
     const respostaTraduzida = {
       caminhoCombinado: combined,
       quantidadeSegmentos: segments.length,
       segundosPorSegmento: SEG_SECONDS,
+<<<<<<< HEAD
       quantidadeMusicasEncontradas: dedup.length,
-      musicas: dedup.map((m) => {
-        // Extrair o link da música a partir dos metadados fonte
-        const link = extractMusicLink(m.fonte);
-        const isrc = m.fonte?.deezer?.isrc;
-        return {
-          inicioSegundos: m.inicioSegundos,
-          fimSegundos: m.fimSegundos,
-          titulo: m.titulo,
-          artista: m.artista,
-          isrc: isrc,
-          dataLancamento: m.dataLancamento,
-          link: link
-        };
-      }),
+      musicas: dedup.map((m) => ({ inicioSegundos: m.inicioSegundos, fimSegundos: m.fimSegundos, titulo: m.titulo, artista: m.artista, isrc: m.isrc, dataLancamento: m.dataLancamento })),
+=======
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
       resultados: segmentosTrad,
       cronograma: cronograma,
       configAudd: { params: { retorno: AUDD_CONFIG?.params?.return ?? '' } },

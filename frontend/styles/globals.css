@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body{
+        @apply bg-[#14141A] min-h-screen m-0 p-0;
+        font-family: var(--font-globotipo), sans-serif;
+    }
+    html {
+        @apply m-0 p-0;
+    }
+}
+
+@config "../tailwind.config.js"

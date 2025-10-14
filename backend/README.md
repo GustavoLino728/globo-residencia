@@ -7,24 +7,37 @@ Localização do backend: `backend/`
 Requisitos
 - Node.js (recomendo v18+)
 - ffmpeg disponível no PATH
+<<<<<<< HEAD
+- npm para instalar dependências
+=======
 - pnpm (ou npm) para instalar dependências
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 
 Instalação
 1. Entre na pasta do backend:
 ```powershell
 cd C:\Next\globo-residencia\backend
 ```
-2. Instale dependências (use pnpm ou npm):
+<<<<<<< HEAD
+2. Instale dependências:
 ```powershell
-# com pnpm (recomendado se você usa pnpm)
+=======
 pnpm install
 
 # ou com npm
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 npm install
 ```
 
 Executando em desenvolvimento
 ```powershell
+<<<<<<< HEAD
+# Modo dev
+npm run dev
+
+# ou build + node
+npm run build
+=======
 # Com pnpm (modo dev)
 pnpm run dev
 
@@ -33,44 +46,35 @@ npm run dev
 
 # ou build + node
 pnpm run build
-node dist/server.js
 ```
 
 Endpoints
 
-1) POST /buscaAudD
-- Recebe um arquivo via multipart/form-data (campo `file`), raw binary no body (Content-Type: application/octet-stream) ou JSON com base64.
-- Retorna um JSON traduzido em português com campos como `caminhoCombinado`, `quantidadeSegmentos`, `segundosPorSegmento`, `resultados` e `cronograma`.
 
-Exemplo de uso no Postman
 
 A) Multipart/form-data (recomendado)
-- Method: POST
 - URL: http://localhost:3000/buscaAudD
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 - Body → form-data
-  - Key: `file` (type: File) → selecione o arquivo `.mxf` local
 - Envie e aguarde. A resposta pode demorar dependendo do tamanho do arquivo e do número de segmentos.
 
 B) Raw binary (enviar o arquivo diretamente no body)
 - Method: POST
+<<<<<<< HEAD
+- URL: http://localhost:8000/buscaAudD
+=======
 - URL: http://localhost:3000/buscaAudD
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 - Body → binary → Select File
 - Headers:
   - Content-Type: application/octet-stream
 
 C) JSON base64 (não recomendado para arquivos grandes)
-- Body → raw → JSON
-```json
-{
-  "filename": "meu_arquivo.mxf",
   "data": "<base64_do_arquivo>"
 }
-```
-
 Exemplo PowerShell (Invoke-WebRequest) — raw binary
 ```powershell
-Invoke-WebRequest -Uri 'http://localhost:3000/buscaAudD' -Method Post -InFile 'C:\caminho\para\arquivo.mxf' -ContentType 'application/octet-stream' -UseBasicParsing -OutFile 'response.json'
-Get-Content response.json -Raw
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
 ```
 
 Observações importantes

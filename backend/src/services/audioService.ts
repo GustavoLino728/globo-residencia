@@ -55,8 +55,6 @@ export function concatWavs(parts: string[], outName = 'combined.wav') {
         .inputOptions(['-f concat', '-safe 0'])
         .outputOptions(['-c copy'])
 <<<<<<< HEAD
-        .on('end', () => resolve(outPath))
-=======
         .on('end', async () => {
           try {
             // após criar o arquivo combinado, remover os segmentos e o arquivo de lista
@@ -69,7 +67,9 @@ export function concatWavs(parts: string[], outName = 'combined.wav') {
           }
           resolve(outPath);
         })
->>>>>>> 938085932c8bdf500bce4a4b3b513929255631b8
+=======
+        .on('end', () => resolve(outPath))
+>>>>>>> 6a314357e5ffe401701619f1cad9f8d0eab5d5d1
         .on('error', (err: any) => reject(err))
         .save(outPath);
     })
