@@ -5,6 +5,7 @@ import { useMemo } from "react";
 
 interface MusicStatsProps {
   musicData: MusicInfo[];
+  showFrequency?: boolean;
 }
 
 interface MusicUsage {
@@ -15,7 +16,7 @@ interface MusicUsage {
   gravadora: string;
 }
 
-const MusicStats = ({ musicData }: MusicStatsProps) => {
+const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
   // Otimizar cálculos com useMemo
   const { sortedMusic, totalMusics, uniqueMusics, totalDuration } = useMemo(() => {
     // Processar dados para encontrar músicas mais utilizadas
@@ -53,52 +54,52 @@ const MusicStats = ({ musicData }: MusicStatsProps) => {
   }, [musicData]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
         {/* Cards de estatísticas gerais */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-            <CardBody className="text-center p-6">
-              <div className="text-3xl font-bold text-white mb-2">{totalMusics}</div>
-              <div className="text-white/80">Total de Músicas</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <Card className="bg-gradient-to-br from-purple-500/15 to-pink-500/15 border border-purple-500/25">
+            <CardBody className="text-center p-3 md:p-4">
+              <div className="text-xl md:text-2xl font-bold text-white mb-1">{totalMusics}</div>
+              <div className="text-white/80 text-xs md:text-sm">Total de Músicas</div>
             </CardBody>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-            <CardBody className="text-center p-6">
-              <div className="text-3xl font-bold text-white mb-2">{uniqueMusics}</div>
-              <div className="text-white/80">Músicas Únicas</div>
+          <Card className="bg-gradient-to-br from-blue-500/15 to-cyan-500/15 border border-blue-500/25">
+            <CardBody className="text-center p-3 md:p-4">
+              <div className="text-xl md:text-2xl font-bold text-white mb-1">{uniqueMusics}</div>
+              <div className="text-white/80 text-xs md:text-sm">Músicas Únicas</div>
             </CardBody>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30">
-            <CardBody className="text-center p-6">
-              <div className="text-3xl font-bold text-white mb-2">{formatTime(totalDuration)}</div>
-              <div className="text-white/80">Duração Total</div>
+          <Card className="bg-gradient-to-br from-green-500/15 to-emerald-500/15 border border-green-500/25">
+            <CardBody className="text-center p-3 md:p-4">
+              <div className="text-xl md:text-2xl font-bold text-white mb-1">{formatTime(totalDuration)}</div>
+              <div className="text-white/80 text-xs md:text-sm">Duração Total</div>
             </CardBody>
           </Card>
         </div>
 
       {/* Top músicas mais utilizadas */}
       <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
-        <CardBody className="p-6">
-          <h3 className="text-2xl font-bold text-white mb-6">Músicas Mais Utilizadas</h3>
-          <div className="space-y-4">
-            {sortedMusic.map((music, index) => (
+        <CardBody className="p-3 md:p-4">
+          <h3 className="text-sm md:text-base font-semibold text-white mb-3">Músicas Mais Utilizadas</h3>
+          <div className="space-y-2">
+            {sortedMusic.slice(0, 5).map((music, index) => (
               <div key={`${music.musica}-${music.artista}`} 
-                   className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                <div className="flex items-center space-x-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                   className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-[9px]">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="text-white font-semibold">{music.musica}</div>
-                    <div className="text-white/70 text-sm">{music.artista}</div>
-                    <div className="text-white/50 text-xs">{music.gravadora}</div>
+                    <div className="text-white font-medium text-xs md:text-sm">{music.musica}</div>
+                    <div className="text-white/70 text-[11px] md:text-xs">{music.artista}</div>
+                    <div className="text-white/50 text-[10px] md:text-xs hidden md:block">{music.gravadora}</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-bold">{music.count}x</div>
-                  <div className="text-white/70 text-sm">{formatTime(music.totalDuration)}</div>
+                  <div className="text-white font-semibold text-xs md:text-sm">{music.count}x</div>
+                  <div className="text-white/70 text-[11px] md:text-xs">{formatTime(music.totalDuration)}</div>
                 </div>
               </div>
             ))}
@@ -107,32 +108,34 @@ const MusicStats = ({ musicData }: MusicStatsProps) => {
       </Card>
 
       {/* Gráfico de barras simples */}
-      <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
-        <CardBody className="p-6">
-          <h3 className="text-2xl font-bold text-white mb-6">Frequência de Uso</h3>
-          <div className="space-y-3">
-            {sortedMusic.slice(0, 5).map((music, index) => {
-              const maxCount = sortedMusic[0].count;
-              const percentage = (music.count / maxCount) * 100;
-              
-              return (
-                <div key={`${music.musica}-${music.artista}`} className="space-y-2">
-                  <div className="flex justify-between text-sm text-white/80">
-                    <span className="truncate max-w-[200px]">{music.musica}</span>
-                    <span>{music.count}x</span>
+      {showFrequency && (
+        <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
+          <CardBody className="p-3 md:p-4">
+            <h3 className="text-xs md:text-sm font-semibold text-white mb-2">Frequência de Uso</h3>
+            <div className="space-y-2">
+              {sortedMusic.slice(0, 4).map((music, index) => {
+                const maxCount = sortedMusic[0].count;
+                const percentage = (music.count / maxCount) * 100;
+                
+                return (
+                  <div key={`${music.musica}-${music.artista}`} className="space-y-1.5">
+                    <div className="flex justify-between text-[11px] md:text-xs text-white/80">
+                      <span className="truncate max-w-[160px] md:max-w-[200px]">{music.musica}</span>
+                      <span>{music.count}x</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-md h-2">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-md transition-all duration-1000 ease-out"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-white/10 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardBody>
-      </Card>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 };
