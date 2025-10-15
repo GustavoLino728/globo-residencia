@@ -8,72 +8,8 @@ import EDLDownloadModal from "@/components/edlDownloadModal";
 import { Button } from "@heroui/button";
 import MusicCounter from "@/components/musicCounter";
 import ApprovalButtons from "@/components/approvalButtons";
-import  {VideoPlayer}  from "@/components/videoPlayer";
-
-// Dados de exemplo para demonstração - agora como array de arrays de músicas
-const sampleMusicData: Record<string, MusicInfo[]> = {
-  "1": [
-    {
-      musica: "Bohemian Rhapsody",
-      efeitoSonoro: "Reverb suave",
-      artista: "Queen",
-      interprete: "Freddie Mercury",
-      gravadora: "EMI Records",
-      tempoInicio: "00:15",
-      tempoFim: "03:45",
-      isrc: "GBUM71029678",
-      tempoTotal: "05:55"
-    },
-    {
-      musica: "We Will Rock You",
-      efeitoSonoro: "Stomp clap",
-      artista: "Queen",
-      interprete: "Freddie Mercury",
-      gravadora: "EMI Records",
-      tempoInicio: "00:00",
-      tempoFim: "02:03",
-      isrc: "GBUM71029679",
-      tempoTotal: "02:03"
-    }
-  ],
-  "2": [
-    {
-      musica: "Imagine",
-      efeitoSonoro: "Piano natural",
-      artista: "John Lennon",
-      interprete: "John Lennon",
-      gravadora: "Apple Records",
-      tempoInicio: "00:00",
-      tempoFim: "03:07",
-      isrc: "USRC17607839",
-      tempoTotal: "03:07"
-    }
-  ],
-  "3": [
-    {
-      musica: "Billie Jean",
-      efeitoSonoro: "Bass sintético",
-      artista: "Michael Jackson",
-      interprete: "Michael Jackson",
-      gravadora: "Epic Records",
-      tempoInicio: "00:30",
-      tempoFim: "04:54",
-      isrc: "USUM70903642",
-      tempoTotal: "04:54"
-    },
-    {
-      musica: "Beat It",
-      efeitoSonoro: "Guitar solo",
-      artista: "Michael Jackson",
-      interprete: "Michael Jackson",
-      gravadora: "Epic Records",
-      tempoInicio: "00:00",
-      tempoFim: "04:18",
-      isrc: "USUM70903643",
-      tempoTotal: "04:18"
-    }
-  ]
-};
+import  { VideoPlayer }  from "@/components/videoPlayer";
+import { sampleMusicData } from "@/data/musicMock";
 
 export default function ValidandoPage() {
   const params = useParams();
