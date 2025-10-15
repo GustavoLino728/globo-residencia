@@ -2,15 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
-import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
-import NavigationControls from "@/components/navigationControl";
 import EDLDownloadModal from "@/components/edlDownloadModal";
-import { Button } from "@heroui/button";
-import MusicCounter from "@/components/musicCounter";
-import ApprovalButtons from "@/components/approvalButtons";
 import  { VideoPlayer }  from "@/components/videoPlayer";
 import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 import ValidationPanel from "@/components/validationPainel"
+import ErrorState from "@/components/errorState";
+import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
+import { Button } from "@heroui/button";
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -157,30 +155,12 @@ export default function ValidandoPage() {
   if (hasError || !musicInfo || musicInfo.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
-        <div className="flex flex-col items-center justify-center p-8 max-w-md text-center">
-          <div className="mb-4">
-            <svg className="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h2 className="text-2xl font-semibold text-white mb-2 mt-4">
-              {hasError ? "Erro ao carregar dados" : "Nenhuma música encontrada"}
-            </h2>
-            <p className="text-white/70">
-              {hasError 
-                ? "Ocorreu um erro ao processar os dados de validação. Por favor, tente fazer o upload novamente."
-                : "Não foram encontradas músicas para validação neste ID. Faça um novo upload ou verifique o ID informado."
-              }
-            </p>
-          </div>
-          <Button
-            color="primary"
-            variant="solid"
-            onClick={() => window.location.href = "/upload"}
-            className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2"
-          >
-            Voltar para upload
-          </Button>
-        </div>
+        <ErrorState
+          id={id}
+          isNewFile={isNewFile}
+          isNewFileId={isNewFileId}
+          sampleMusicData={sampleMusicData}
+        />
       </div>
     );
   }
@@ -216,9 +196,6 @@ export default function ValidandoPage() {
         </div>
 
       </main>
-
-      {/* Bottom gradient accent */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
 
       {/* EDL Download Modal */}
       <EDLDownloadModal
