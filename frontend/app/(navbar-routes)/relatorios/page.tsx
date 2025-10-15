@@ -1,17 +1,16 @@
 "use client";
+
 import VideoCarousel from "@/components/videoCarossel";
 import { useRouter } from "next/navigation";
 import { notFinishedVideos, finishedVideos } from "@/data/videoMocks"; 
+import { useCallback } from "react"; //
 
 const Index = () => {
   const router = useRouter();
 
-  // Função para navegar para a página de validação
-  const handleVideoClick = (id: string, title: string) => {
-    // Armazenar o título na sessionStorage para usar na página de validação
-    sessionStorage.setItem('validationTitle', title);
-    router.push(`/relatorios/validacao/${id}`);
-  };
+  const handleVideoClick = useCallback((id: string, title: string) => {
+    router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white flex flex-col relative overflow-hidden">

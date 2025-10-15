@@ -7,15 +7,15 @@ import  { VideoPlayer }  from "@/components/videoPlayer";
 import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 import ValidationPanel from "@/components/validationPainel"
 import ErrorState from "@/components/errorState";
+import { useSearchParams } from 'next/navigation';
 
 export default function ValidandoPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
-
-  // Busca os dados da música baseado no ID da rota
+  const urlTitle = searchParams.get('title');
+  
   const musicInfo = sampleMusicData[id];
-
-  // Verificar se é um arquivo novo (sem dados da API)
   const isNewFile = !musicInfo;
   const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
 
@@ -34,13 +34,13 @@ export default function ValidandoPage() {
     setShowEDLModal(true);
   };
 
-  // Buscar o título do vídeo do sessionStorage
   useEffect(() => {
-    const title = sessionStorage.getItem('validationTitle');
-    if (title) {
-      setValidationTitle(title);
+    if (urlTitle) {
+      setValidationTitle(urlTitle);
+    } else {
+      setValidationTitle(`Validação ${id}`); 
     }
-  }, []);
+  }, [urlTitle, id]);
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -57,18 +57,24 @@ export default function ValidandoPage() {
   const handleApprove = () => {
     setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'approved' }));
     console.log("Música aprovada!");
-    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
-      setTimeout(() => handleNext(), 500);
-    }
-  };
+};
 
-  const handleReject = () => {
+const handleReject = () => {
     setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'rejected' }));
     console.log("Música rejeitada!");
-    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
-      setTimeout(() => handleNext(), 500);
-    }
-  };
+};
+
+useEffect(() => {
+  if (validatedSongs[currentIndex]) { 
+      const hasNext = currentMusicData && currentIndex < currentMusicData.length - 1;
+      if (hasNext) {
+          const timer = setTimeout(() => {
+              setCurrentIndex(currentIndex + 1);
+          }, 500); 
+          return () => clearTimeout(timer); 
+      }
+  }
+}, [validatedSongs, currentIndex, currentMusicData]); 
 
   if (!currentMusicData || currentMusicData.length === 0) {
     return (
