@@ -144,6 +144,7 @@ export default function ValidandoPage() {
   // Estado de carregamento
   if (isLoading) {
     return (
+<<<<<<< HEAD
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
         <div className="text-center p-8">
           <div className="relative">
@@ -176,7 +177,7 @@ export default function ValidandoPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative overflow-hidden">
-      {/* Background decorative elements */}
+
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
       
@@ -186,7 +187,7 @@ export default function ValidandoPage() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
-          {/* Video Player Section - 2/3 da largura */}
+
           <VideoPlayer/>
 
           <ValidationPanel
@@ -200,13 +201,12 @@ export default function ValidandoPage() {
           handleNext={handleNext}
           handleApprove={handleApprove}
           handleReject={handleReject}
-          onGenerateEdl={handleGenerateEdl} // Passa a função para o painel
+          onGenerateEdl={handleGenerateEdl} 
           />
         </div>
 
       </main>
 
-      {/* EDL Download Modal */}
       <EDLDownloadModal
         isOpen={showEDLModal}
         onClose={() => setShowEDLModal(false)}
