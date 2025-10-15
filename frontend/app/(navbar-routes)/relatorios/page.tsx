@@ -4,12 +4,14 @@ import VideoCarousel from "@/components/videoCarossel";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { notFinishedVideos, finishedVideos } from "@/data/videoMocks";
+import EDLDownloadModal from "@/components/edlDownloadModal";
 
 const Index = () => {
   const router = useRouter();
   const [uploadResults, setUploadResults] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showClearMessage, setShowClearMessage] = useState(false);
+  const [modalData, setModalData] = useState<{ id: string, title: string } | null>(null);
 
   useEffect(() => {
     // Recuperar resultados do localStorage
@@ -53,6 +55,10 @@ const Index = () => {
   const handleVideoClick = useCallback((id: string, title: string) => {
     router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
   }, [router]);
+
+  const handleFinishedVideoClick = useCallback((id: string, title: string) => {
+    setModalData({ id, title });
+  }, []);
 
   // Função para renderizar os resultados do upload
   const renderUploadResults = () => {
@@ -144,12 +150,24 @@ const Index = () => {
               </div>
               
               <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-                <VideoCarousel title="Finalizados" videos={finishedVideos} />
+                <VideoCarousel 
+                  title="Finalizados" 
+                  videos={finishedVideos} 
+                  onVideoClick={handleFinishedVideoClick}
+                />
               </div>
             </>
           )}
         </div>
       </main>
+
+      <EDLDownloadModal
+        isOpen={!!modalData}
+        onClose={() => setModalData(null)} 
+        fileName={modalData?.id || ""} 
+        validationTitle={modalData?.title || ""} 
+      />
+
     </div>
   );
 };
