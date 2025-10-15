@@ -1,53 +1,123 @@
-# Next.js & HeroUI Template
+O **ContagIA** é uma solução que automatiza a detecção de músicas em conteúdos de mídia, gerando metadados e relatórios precisos para garantir a conformidade de direitos autorais e otimizar o fluxo de trabalho da Pós-Produção.
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+Localização do backend: `backend/`
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## 📖 Índice
+- 🎯 [Sobre o Projeto](#-sobre-o-projeto)  
+  - [O Problema](#o-problema)  
+  - [A Solução](#a-solução)  
+- ✨ [Funcionalidades Principais](#-funcionalidades-principais)  
+- 🚀 [Stack Tecnológica](#-stack-tecnológica)  
+- 🔧 [Instalação e Configuração](#-instalação-e-configuração)  
+  - [Pré-requisitos](#pré-requisitos)  
+  - [Passo a Passo](#passo-a-passo)  
+- ▶️ [Como Executar](#️-como-executar)  
+  - [Executando a Aplicação](#executando-a-aplicação)  
+  - [Executando os Testes](#executando-os-testes)  
+- 🛠️ [Arquitetura e Fluxo de Dados](#️-arquitetura-e-fluxo-de-dados)  
+- 🤝 [Como Contribuir](#-como-contribuir)  
+- 📄 [Licença](#-licença)  
 
-## Technologies Used
+---
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+## 🎯 Sobre o Projeto
 
-## How to Use
+### O Problema
+O processo de identificação, registro e relatório de trilhas sonoras utilizadas em programas e reportagens é historicamente **manual**.  
+Essa abordagem é **lenta**, suscetível a erros humanos e acarreta riscos operacionais e financeiros significativos para a Pós-Produção, especialmente no que tange ao pagamento de direitos autorais e à conformidade legal.
 
-### Use the template with create-next-app
+### A Solução
+O **ContagIA** foi desenvolvido para resolver esse problema, oferecendo uma **plataforma centralizada e inteligente** que atende às necessidades de diferentes perfis dentro do fluxo de produção.
 
-To create a new project based on this template using `create-next-app`, run the following command:
+**Para o Editor de Pós-Produção (Ricardo):**  
+Ele precisa de agilidade. O ContagIA remove a tarefa tediosa e repetitiva de anotar timecodes manualmente, permitindo que ele foque em seu trabalho criativo.  
+Com a ferramenta, Ricardo pode rapidamente fazer o upload de uma matéria, receber uma lista precisa das músicas utilizadas e gerar o relatório (EDL) com poucos cliques, garantindo a conformidade sem quebrar seu fluxo de trabalho.
+
+**Para a Gestora de Pós-Produção (Lydia):**  
+Ela precisa de controle, dados e mitigação de riscos. O ContagIA oferece uma visão centralizada de todo o conteúdo processado, criando um histórico confiável.  
+Com dashboards analíticos, Lydia pode monitorar a produtividade da equipe, identificar as músicas mais utilizadas para embasar negociações com gravadoras e, o mais importante, garantir que 100% do conteúdo está em conformidade com as políticas de direitos autorais, eliminando riscos legais e financeiros.
+
+---
+
+## ✨ Funcionalidades Principais
+- 📤 **Upload Simplificado de Mídia**: Interface intuitiva para que editores subam arquivos de vídeo e áudio para processamento.  
+- 🤖 **Detecção Automática com IA**: Utilização da API da ACRCloud para extrair o *fingerprint* do áudio, identificar as músicas com precisão e retornar metadados completos, incluindo timestamps de início e fim.  
+- 📄 **Geração de Relatórios (EDL)**: Criação automática de relatórios de uso musical no formato Edit Decision List (EDL), prontos para serem enviados aos departamentos responsáveis.  
+- 📊 **Dashboard Analítico**: Painel para gestores com métricas sobre as músicas mais tocadas, volume de produção por editor e monitoramento do status de conformidade.  
+- 🗄️ **Histórico e Pesquisa**: Banco de dados centralizado que permite a pesquisa e auditoria de mídias processadas anteriormente.  
+
+---
+
+## 🚀 Stack Tecnológica
+- **Frontend**: React, Next.js, TypeScript  
+- **Backend (API Gateway/BFF)**: Node.js  
+- **Backend (Core/Processamento)**: Python  
+- **Banco de Dados**: MySQL  
+- **API de Reconhecimento Musical**: ACRCloud  
+- **Infraestrutura (Sugerida)**: Docker, AWS (S3, Lambda, EC2/Fargate)  
+
+---
+
+## 🔧 Instalação e Configuração
+
+### Pré-requisitos
+- Node.js (>= 18.x)  
+- Python (>= 3.9)  
+- Docker e Docker Compose  
+- Acesso às chaves da API ACRCloud  
+
+### Passo a Passo
+Clone o repositório:
+```bash
+
+## **Frontend (React/Next.js)**
+
+Para executar os testes do frontend:
 
 ```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
+docker-compose exec frontend npm test
 ```
+## 🛠️ Arquitetura e Fluxo de Dados
 
-### Install dependencies
+O fluxo de dados do sistema ocorre em etapas bem definidas:
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+1.  **Upload:** O **Editor (Ricardo)** inicia o processo fazendo o *upload* de um arquivo de vídeo através da interface desenvolvida em **Next.js**.
+2.  **Armazenamento:** O **backend em Node.js** recebe o arquivo, armazena-o em um **bucket** (ex: **AWS S3**), e registra uma nova tarefa no banco de dados **MySQL**.
+3.  **Processamento:** Um serviço em **Python** baixa o arquivo, realiza a extração da trilha de áudio e a envia para a **API da ACRCloud** para identificação.
+4.  **Enriquecimento:** Após a **ACRCloud** retornar os metadados, o serviço **Python** processa, estrutura e salva esses dados enriquecidos no **MySQL**.
+5.  **Visualização:** A **Gestora (Lydia)** ou o **Editor** podem, então, acessar os relatórios e *dashboards* resultantes via **API do Node.js**.
 
-```bash
-npm install
-```
+## 🤝 Como Contribuir
 
-### Run the development server
+Adotamos um **Git Flow simplificado** para gerenciar o desenvolvimento:
 
-```bash
-npm run dev
-```
+### Branches Principais
 
-### Setup pnpm (optional)
+* **`main`**: Contém o código de produção (recebe apenas *merges* de `develop`).
+* **`develop`**: Usada para integração contínua de novas funcionalidades.
+* **`frontend`**: Branch de desenvolvimento exclusivo para o frontend.
+* **`backend`**: Branch de desenvolvimento exclusivo para o backend.
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+## Fluxo de Trabalho
 
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
+1.  **Atualize sua branch:**
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+    ```bash
+    git checkout frontend
+    git pull origin frontend
+    ```
 
-## License
+2.  **Desenvolva e faça commits claros seguindo o padrão de Commits Convencionais:**
 
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+    ```bash
+    git add .
+    git commit -m "feat(frontend): adiciona formulário de login #TICKET-123"
+    ```
+
+3.  **Envie suas alterações:**
+
+    ```bash
+    git push origin frontend
+    ```
+
+4.  **Abra um Pull Request** da sua branch para a `develop`.
