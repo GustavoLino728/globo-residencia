@@ -6,6 +6,51 @@ import { MusicInfo } from "@/components/validationCard";
 
 // Dados de exemplo baseados nos dados existentes do sistema
 const sampleMusicData: MusicInfo[] = [
+  // Reforço para Top 1
+  {
+    musica: "The Fate of Ophelia",
+    efeitoSonoro: "Ambient pads",
+    artista: "Taylor Swift",
+    interprete: "Taylor Swift",
+    gravadora: "Republic Records",
+    tempoInicio: "00:00",
+    tempoFim: "03:45",
+    isrc: "USUG12400001",
+    tempoTotal: "03:45"
+  },
+  {
+    musica: "The Fate of Ophelia",
+    efeitoSonoro: "Ambient pads",
+    artista: "Taylor Swift",
+    interprete: "Taylor Swift",
+    gravadora: "Republic Records",
+    tempoInicio: "00:10",
+    tempoFim: "03:30",
+    isrc: "USUG12400001",
+    tempoTotal: "03:20"
+  },
+  {
+    musica: "The Fate of Ophelia",
+    efeitoSonoro: "Ambient pads",
+    artista: "Taylor Swift",
+    interprete: "Taylor Swift",
+    gravadora: "Republic Records",
+    tempoInicio: "00:20",
+    tempoFim: "03:15",
+    isrc: "USUG12400001",
+    tempoTotal: "03:00"
+  },
+  {
+    musica: "The Fate of Ophelia",
+    efeitoSonoro: "Ambient pads",
+    artista: "Taylor Swift",
+    interprete: "Taylor Swift",
+    gravadora: "Republic Records",
+    tempoInicio: "00:05",
+    tempoFim: "03:40",
+    isrc: "USUG12400001",
+    tempoTotal: "03:35"
+  },
   {
     musica: "Bohemian Rhapsody",
     efeitoSonoro: "Reverb suave",
@@ -162,7 +207,7 @@ export default function DashboardPage() {
 
                     {/* Estatísticas das músicas */}
                     <div className="mb-6 bg-slate-800/30 backdrop-blur rounded-xl border border-white/10 shadow-sm p-4 md:p-6">
-                        <MusicStats musicData={sampleMusicData} />
+                        <MusicStats musicData={sampleMusicData} showFrequency={false} />
                     </div>
 
                     {/* Gráficos e visualizações */}
