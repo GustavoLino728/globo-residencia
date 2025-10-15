@@ -108,22 +108,22 @@ const MusicStats = ({ musicData }: MusicStatsProps) => {
 
       {/* Gráfico de barras simples */}
       <Card className="bg-white/10 backdrop-blur-lg border border-white/20">
-        <CardBody className="p-4 md:p-5">
-          <h3 className="text-lg md:text-xl font-semibold text-white mb-4">Frequência de Uso</h3>
-          <div className="space-y-2.5">
-            {sortedMusic.slice(0, 5).map((music, index) => {
+        <CardBody className="p-3 md:p-4">
+          <h3 className="text-xs md:text-sm font-semibold text-white mb-2">Frequência de Uso</h3>
+          <div className="space-y-2">
+            {sortedMusic.slice(0, 4).map((music, index) => {
               const maxCount = sortedMusic[0].count;
               const percentage = (music.count / maxCount) * 100;
               
               return (
-                <div key={`${music.musica}-${music.artista}`} className="space-y-2">
-                  <div className="flex justify-between text-xs md:text-sm text-white/80">
-                    <span className="truncate max-w-[180px] md:max-w-[220px]">{music.musica}</span>
+                <div key={`${music.musica}-${music.artista}`} className="space-y-1.5">
+                  <div className="flex justify-between text-[11px] md:text-xs text-white/80">
+                    <span className="truncate max-w-[160px] md:max-w-[200px]">{music.musica}</span>
                     <span>{music.count}x</span>
                   </div>
-                  <div className="w-full bg-white/10 rounded-full h-2.5 md:h-3">
+                  <div className="w-full bg-white/10 rounded-md h-2">
                     <div 
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 md:h-3 rounded-full transition-all duration-1000 ease-out"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-md transition-all duration-1000 ease-out"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
