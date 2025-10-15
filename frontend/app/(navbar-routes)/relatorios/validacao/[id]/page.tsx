@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import NavigationControls from "@/components/navigationControl";
@@ -10,6 +10,7 @@ import MusicCounter from "@/components/musicCounter";
 import ApprovalButtons from "@/components/approvalButtons";
 import  { VideoPlayer }  from "@/components/videoPlayer";
 import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
+import ValidationPanel from "@/components/validationPainel"
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -27,14 +28,25 @@ export default function ValidandoPage() {
   
   // Verificar se é um arquivo novo (sem dados da API)
   const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
+  
+  // Dados da música atual para exibição - calculado baseado no estado atual
+  const currentMusicData = useMemo(() => {
+    if (musicInfo && musicInfo.length > 0) {
+      return musicInfo;
+    }
+    if (isNewFileId) {
+      return defaultUndefinedMusicData;
+    }
+    return [];
+  }, [musicInfo, isNewFileId]);
+  
   const isNewFile = !musicInfo || musicInfo.length === 0;
+  const allSongsValidated = currentMusicData && currentMusicData.length > 0 ? Object.keys(validatedSongs).length === currentMusicData.length : false;
   
-  // Dados da música atual para exibição
-  const currentMusicData = musicInfo.length > 0 ? musicInfo : (
-    isNewFile && isNewFileId ? defaultUndefinedMusicData : []
-  );
-  
-  const allSongsValidated = musicInfo && musicInfo.length > 0 ? Object.keys(validatedSongs).length === musicInfo.length : false;
+  const handleGenerateEdl = () => {
+    console.log("Abrindo modal de download EDL...");
+    setShowEDLModal(true);
+  };
   
   // Carregar os dados do localStorage quando o componente montar
   useEffect(() => {
@@ -188,63 +200,19 @@ export default function ValidandoPage() {
           {/* Video Player Section - 2/3 da largura */}
           <VideoPlayer/>
 
-          {/* Validation Panel with Glass Effect - 1/3 da largura */}
-          <div className="lg:col-span-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl w-full">
-            {/* Aviso para arquivos novos */}
-            {isNewFile && isNewFileId && (
-              <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-yellow-200 text-sm font-medium">
-                    Arquivo carregado - Informações da música não identificadas pela API
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <NavigationControls
-              currentIndex={currentIndex}
-              total={currentMusicData.length}
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-            />
-
-            <div className="mb-6">
-              <MusicInfoCard 
-                info={currentMusicData[currentIndex]} 
-                validationStatus={validatedSongs[currentIndex]}
-              />
-            </div>
-
-            <ApprovalButtons
-              onApprove={handleApprove}
-              onReject={handleReject}
-            />
-                    {allSongsValidated && (
-          <div className="mt-8 flex justify-center">
-            <Button
-              color="primary"
-              variant="solid"
-              onPress={() => {
-                console.log("Abrindo modal de download EDL...");
-                setShowEDLModal(true);
-              }}
-              className="w-36 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-            >
-              Gerar EDL
-            </Button>
-          </div>
-        )}
-
-            <div className="flex justify-center">
-              <MusicCounter
-                current={currentIndex + 1}
-                total={currentMusicData.length}
-              />
-            </div>
-          </div>
+          <ValidationPanel
+          isNewFile={isNewFile}
+          isNewFileId={isNewFileId}
+          currentMusicData={currentMusicData}
+          currentIndex={currentIndex}
+          validatedSongs={validatedSongs}
+          allSongsValidated={allSongsValidated}
+          handlePrevious={handlePrevious}
+          handleNext={handleNext}
+          handleApprove={handleApprove}
+          handleReject={handleReject}
+          onGenerateEdl={handleGenerateEdl} // Passa a função para o painel
+          />
         </div>
 
       </main>
