@@ -6,7 +6,9 @@ import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import NavigationControls from "@/components/navigationControl";
 import EDLDownloadModal from "@/components/edlDownloadModal";
 import { Button } from "@heroui/button";
-import { Chip } from "@heroui/chip";
+import MusicCounter from "@/components/musicCounter";
+import ApprovalButtons from "@/components/approvalButtons";
+import  {VideoPlayer}  from "@/components/videoPlayer";
 
 // Dados de exemplo para demonstração - agora como array de arrays de músicas
 const sampleMusicData: Record<string, MusicInfo[]> = {
@@ -71,43 +73,6 @@ const sampleMusicData: Record<string, MusicInfo[]> = {
       tempoTotal: "04:18"
     }
   ]
-};
-
-// Componente para botões de aprovação
-const ApprovalButtons = ({ onApprove, onReject }: { onApprove: () => void; onReject: () => void }) => {
-  return (
-    <div className="flex gap-4 mt-8 justify-center">
-      <Button 
-        color="success" 
-        variant="solid"
-        onPress={onApprove}
-        className="w-32 h-10 text-lg text-white font-semibold rounded-xl"
-      >
-        Aprovar
-      </Button>
-      <Button 
-        color="danger" 
-        variant="solid"
-        onPress={onReject}
-        className="w-32 h-10 text-lg font-semibold rounded-xl"
-      >
-        Rejeitar
-      </Button>
-    </div>
-  );
-};
-
-// Componente para contador personalizado
-const MusicCounter = ({ current, total }: { current: number; total: number }) => {
-  return (
-    <Chip 
-      variant="flat" 
-      size="lg"
-      className="mt-6 text-[#FFFFFFA] font-semibold px-6 py-4 text-lg bg-purple-600/0"
-    >
-      {current} de {total} músicas
-    </Chip>
-  );
 };
 
 export default function ValidandoPage() {
@@ -229,18 +194,7 @@ export default function ValidandoPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
           {/* Video Player Section - 2/3 da largura */}
-          <div className="lg:col-span-2 flex items-center">
-            <div className="w-full h-full p-8 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 5v10l8-5-8-5z"/>
-                  </svg>
-                </div>
-                <p className="text-white/80 font-medium">Player de vídeo</p>
-              </div>
-            </div>
-          </div>
+          <VideoPlayer/>
 
           {/* Validation Panel with Glass Effect - 1/3 da largura */}
           <div className="lg:col-span-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl w-full">
