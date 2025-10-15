@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
 
 interface EDLDownloadModalProps {
   isOpen: boolean;
@@ -16,10 +15,7 @@ const EDLDownloadModal = ({ isOpen, onClose, fileName, validationTitle }: EDLDow
 
   const handleDownloadEDL = () => {
     setIsDownloading(true);
-    
-    // Simular geração e download do EDL
     setTimeout(() => {
-      // Criar conteúdo do EDL mais detalhado
       const edlContent = `TITLE: ${validationTitle}
 FCM: NON-DROP FRAME
 CREATED: ${new Date().toISOString()}
@@ -57,7 +53,6 @@ PROJECT: Globo Residência - Validação Musical
 
 `;
 
-      // Criar blob e fazer download
       const blob = new Blob([edlContent], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

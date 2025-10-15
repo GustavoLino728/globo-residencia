@@ -4,13 +4,21 @@ import VideoCarousel from "@/components/videoCarossel";
 import { useRouter } from "next/navigation";
 import { notFinishedVideos, finishedVideos } from "@/data/videoMocks"; 
 import { useCallback } from "react"; //
+import { useState } from "react";
+import EDLDownloadModal from "@/components/edlDownloadModal";
 
 const Index = () => {
   const router = useRouter();
+  const [modalData, setModalData] = useState<{ id: string, title: string } | null>(null);
 
   const handleVideoClick = useCallback((id: string, title: string) => {
     router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
   }, [router]);
+
+  const handleFinishedVideoClick = useCallback((id: string, title: string) => {
+    setModalData({ id, title });
+
+}, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white flex flex-col relative overflow-hidden">
@@ -32,10 +40,22 @@ const Index = () => {
             />
           </div>
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <VideoCarousel title="Finalizados" videos={finishedVideos} />
+            <VideoCarousel 
+            title="Finalizados" 
+            videos={finishedVideos} 
+            onVideoClick={handleFinishedVideoClick}
+            />
           </div>
         </div>
       </main>
+
+      <EDLDownloadModal
+        isOpen={!!modalData}
+        onClose={() => setModalData(null)} 
+        fileName={modalData?.id || ""} 
+        validationTitle={modalData?.title || ""} 
+      />
+
     </div>
   );
 };
