@@ -1,5 +1,19 @@
 import { MusicInfo } from "@/components/validationCard";
 
+export const defaultUndefinedMusicData: MusicInfo[] = [
+  {
+    musica: "Informação não encontrada",
+    efeitoSonoro: "Não identificado",
+    artista: "Artista desconhecido",
+    interprete: "Intérprete não identificado",
+    gravadora: "Gravadora não identificada",
+    tempoInicio: "00:00",
+    tempoFim: "00:00",
+    isrc: "N/A",
+    tempoTotal: "00:00"
+  }
+]
+
 export const sampleMusicData: Record<string, MusicInfo[]> = {
     "queen-show-c96c4a85": [
       {

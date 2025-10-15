@@ -9,7 +9,7 @@ import { Button } from "@heroui/button";
 import MusicCounter from "@/components/musicCounter";
 import ApprovalButtons from "@/components/approvalButtons";
 import  { VideoPlayer }  from "@/components/videoPlayer";
-import { sampleMusicData } from "@/data/musicMock";
+import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -22,23 +22,9 @@ export default function ValidandoPage() {
   const isNewFile = !musicInfo;
   const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
 
-  // Criar dados de música indefinidos para arquivos novos
-  const undefinedMusicData: MusicInfo[] = isNewFile && isNewFileId ? [
-    {
-      musica: "Informação não encontrada",
-      efeitoSonoro: "Não identificado",
-      artista: "Artista desconhecido",
-      interprete: "Intérprete não identificado",
-      gravadora: "Gravadora não identificada",
-      tempoInicio: "00:00",
-      tempoFim: "00:00",
-      isrc: "N/A",
-      tempoTotal: "00:00"
-    }
-  ] : [];
-
-  // Usar dados reais ou dados indefinidos
-  const currentMusicData = musicInfo || undefinedMusicData;
+  const currentMusicData = musicInfo || (
+    isNewFile && isNewFileId ? defaultUndefinedMusicData : []
+  );
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
