@@ -9,7 +9,7 @@ import { Button } from "@heroui/button";
 import MusicCounter from "@/components/musicCounter";
 import ApprovalButtons from "@/components/approvalButtons";
 import  { VideoPlayer }  from "@/components/videoPlayer";
-import { sampleMusicData } from "@/data/musicMock";
+import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -19,11 +19,22 @@ export default function ValidandoPage() {
   const [musicInfo, setMusicInfo] = useState<MusicInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [showEDLModal, setShowEDLModal] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
   const [validatedSongs, setValidatedSongs] = useState<Record<number, 'approved' | 'rejected'>>({});
-  const allSongsValidated = musicInfo ? Object.keys(validatedSongs).length === musicInfo.length : false;
+  
+  // Verificar se é um arquivo novo (sem dados da API)
+  const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
+  const isNewFile = !musicInfo || musicInfo.length === 0;
+  
+  // Dados da música atual para exibição
+  const currentMusicData = musicInfo.length > 0 ? musicInfo : (
+    isNewFile && isNewFileId ? defaultUndefinedMusicData : []
+  );
+  
+  const allSongsValidated = musicInfo && musicInfo.length > 0 ? Object.keys(validatedSongs).length === musicInfo.length : false;
   
   // Carregar os dados do localStorage quando o componente montar
   useEffect(() => {
