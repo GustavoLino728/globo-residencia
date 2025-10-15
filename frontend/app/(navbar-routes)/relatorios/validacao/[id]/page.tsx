@@ -17,7 +17,7 @@ export default function ValidandoPage() {
   
   const musicInfo = sampleMusicData[id];
   const isNewFile = !musicInfo;
-  const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
+  const isNewFileId = id.includes('-') && id.split('-').length > 1;
 
   const currentMusicData = musicInfo || (
     isNewFile && isNewFileId ? defaultUndefinedMusicData : []
@@ -79,17 +79,17 @@ useEffect(() => {
   if (!currentMusicData || currentMusicData.length === 0) {
     return (
       <ErrorState
-        id={id} // Passa o ID da URL
-        isNewFile={isNewFile} // Passa o resultado da checagem
-        isNewFileId={isNewFileId} // Passa o resultado da checagem
-        sampleMusicData={sampleMusicData} // Passa o objeto mock
+        id={id} 
+        isNewFile={isNewFile} 
+        isNewFileId={isNewFileId} 
+        sampleMusicData={sampleMusicData}
       />
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative overflow-hidden">
-      {/* Background decorative elements */}
+
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
       
@@ -99,7 +99,7 @@ useEffect(() => {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
-          {/* Video Player Section - 2/3 da largura */}
+
           <VideoPlayer/>
 
           <ValidationPanel
@@ -113,13 +113,12 @@ useEffect(() => {
           handleNext={handleNext}
           handleApprove={handleApprove}
           handleReject={handleReject}
-          onGenerateEdl={handleGenerateEdl} // Passa a função para o painel
+          onGenerateEdl={handleGenerateEdl} 
           />
         </div>
 
       </main>
 
-      {/* EDL Download Modal */}
       <EDLDownloadModal
         isOpen={showEDLModal}
         onClose={() => setShowEDLModal(false)}

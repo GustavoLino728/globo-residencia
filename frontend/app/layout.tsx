@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 };
 
 const globotipoTexto = localFont({
-  src: '../public/fonts/Globotipo-Texto.woff2', // Ajuste o caminho conforme necessário
-  variable: '--font-globotipo', // Variável CSS para uso global
+  src: '../public/fonts/Globotipo-Texto.woff2',
+  variable: '--font-globotipo', 
 });
 
 export const viewport: Viewport = {
