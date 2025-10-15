@@ -230,6 +230,21 @@ export default function ValidandoPage() {
               onApprove={handleApprove}
               onReject={handleReject}
             />
+                    {allSongsValidated && (
+          <div className="mt-8 flex justify-center">
+            <Button
+              color="primary"
+              variant="solid"
+              onPress={() => {
+                console.log("Abrindo modal de download EDL...");
+                setShowEDLModal(true);
+              }}
+              className="w-36 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            >
+              Gerar EDL
+            </Button>
+          </div>
+        )}
 
             <div className="flex justify-center">
               <MusicCounter
@@ -240,22 +255,6 @@ export default function ValidandoPage() {
           </div>
         </div>
 
-        {/* Generate EDL Button */}
-        {allSongsValidated && (
-          <div className="mt-8 flex justify-center">
-            <Button
-              color="primary"
-              variant="solid"
-              onPress={() => {
-                console.log("Abrindo modal de download EDL...");
-                setShowEDLModal(true);
-              }}
-              className="w-48 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-            >
-              Gerar EDL
-            </Button>
-          </div>
-        )}
       </main>
 
       {/* Bottom gradient accent */}
