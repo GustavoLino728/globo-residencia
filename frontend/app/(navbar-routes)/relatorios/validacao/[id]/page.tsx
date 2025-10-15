@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
-import NavigationControls from "@/components/navigationControl";
 import EDLDownloadModal from "@/components/edlDownloadModal";
-import { Button } from "@heroui/button";
-import MusicCounter from "@/components/musicCounter";
-import ApprovalButtons from "@/components/approvalButtons";
 import  { VideoPlayer }  from "@/components/videoPlayer";
 import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 import ValidationPanel from "@/components/validationPainel"
+import ErrorState from "@/components/errorState";
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -76,36 +72,12 @@ export default function ValidandoPage() {
 
   if (!currentMusicData || currentMusicData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <div className="mb-4">
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
-            {isNewFile && isNewFileId ? "Arquivo em processamento" : "Conteúdo não encontrado"}
-          </h2>
-          <p className="text-muted-foreground">
-            {isNewFile && isNewFileId 
-              ? "O arquivo foi carregado mas ainda não foi processado pela API. As informações da música aparecerão como 'não encontradas'."
-              : `O ID "${id}" não corresponde a nenhuma validação disponível.`
-            }
-          </p>
-        </div>
-        {!isNewFile && (
-          <div className="mt-4">
-            <p className="text-sm text-muted-foreground mb-2">
-              IDs disponíveis para teste:
-            </p>
-            <div className="flex gap-2 flex-wrap justify-center">
-              {Object.keys(sampleMusicData).map((availableId) => (
-                <span
-                  key={availableId}
-                  className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm"
-                >
-                  {availableId}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <ErrorState
+        id={id} // Passa o ID da URL
+        isNewFile={isNewFile} // Passa o resultado da checagem
+        isNewFileId={isNewFileId} // Passa o resultado da checagem
+        sampleMusicData={sampleMusicData} // Passa o objeto mock
+      />
     );
   }
 
@@ -140,9 +112,6 @@ export default function ValidandoPage() {
         </div>
 
       </main>
-
-      {/* Bottom gradient accent */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
 
       {/* EDL Download Modal */}
       <EDLDownloadModal
