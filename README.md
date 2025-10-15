@@ -1,9 +1,3 @@
-# 🎶 ContagIA
-**Inteligência Artificial a serviço da gestão e conformidade de trilhas sonoras na Rede Globo.**
-
-<p align="center">
-</p>
-
 O **ContagIA** é uma solução que automatiza a detecção de músicas em conteúdos de mídia, gerando metadados e relatórios precisos para garantir a conformidade de direitos autorais e otimizar o fluxo de trabalho da Pós-Produção.
 
 Localização do backend: `backend/`
@@ -75,50 +69,6 @@ Com dashboards analíticos, Lydia pode monitorar a produtividade da equipe, iden
 ### Passo a Passo
 Clone o repositório:
 ```bash
-git clone https://github.com/redeglobo/contagia.git
-cd contagia
-```
-
-### Configure as variáveis de ambiente
-
-1.  Copie os arquivos de exemplo para criar seus arquivos de configuração local:
-    ```bash
-    # No diretório raiz do projeto
-    cp backend/.env.example backend/.env
-    cp frontend/.env.example frontend/.env
-    ```
-
-2.  Edite os arquivos `.env` recém-criados.
-    > As variáveis essenciais são: `DATABASE_URL`, `ACRCLOUD_API_KEY`, `ACRCLOUD_API_SECRET`, entre outras.
-
-### Construa os containers
-
-```bash
-docker-compose build
-```
-
-# ▶️ Como Executar
-
-## Executando a Aplicação
-
-Com os containers já construídos, inicie todos os serviços:
-
-```bash
-docker-compose up
-```
-
-- **Frontend:** disponível em `http://localhost:3000`
-- **Backend API:** disponível em `http://localhost:8000`
-
-## Executando os Testes
-
-**Backend (Python):**
-
-```bash
-docker-compose exec backend pytest
-```
-
----
 
 ## **Frontend (React/Next.js)**
 
