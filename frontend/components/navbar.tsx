@@ -82,14 +82,11 @@ export const Navbar = () => {
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
             <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Signed in as</p>
+              <p className="font-semibold">Logado como</p>
               <p className="font-semibold">zoey@example.com</p>
             </DropdownItem>
-            <DropdownItem key="settings">Minhas configurações</DropdownItem>
             <DropdownItem key="team_settings">Configurações da Equipe</DropdownItem>
-            <DropdownItem key="analytics">Analytics</DropdownItem>
-            <DropdownItem key="configurations">Configurações</DropdownItem>
-            <DropdownItem key="help_and_feedback">Ajuda e Feedback</DropdownItem>
+            <DropdownItem key="analytics">Dashboard</DropdownItem>
             <DropdownItem key="logout" color="danger">
               Sair
             </DropdownItem>

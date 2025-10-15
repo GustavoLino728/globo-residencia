@@ -24,6 +24,7 @@ const NavigationControls = ({
         size="lg"
         onPress={onPrevious}
         isDisabled={currentIndex === 0}
+        radius="full"
         className="bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:text-gray-500"
       >
         <ChevronLeft size={24} />
@@ -45,6 +46,7 @@ const NavigationControls = ({
         size="lg"
         onPress={onNext}
         isDisabled={currentIndex === total - 1}
+        radius="full"
         className="bg-indigo-600 text-white hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:text-gray-500"
       >
         <ChevronRight size={24} />
