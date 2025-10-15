@@ -1,7 +1,8 @@
 "use client";
+
 import VideoCarousel from "@/components/videoCarossel";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { notFinishedVideos, finishedVideos } from "@/data/videoMocks";
 
 const Index = () => {
@@ -49,12 +50,9 @@ const Index = () => {
     }
   };
 
-  // Função para navegar para a página de validação
-  const handleVideoClick = (id: string, title: string) => {
-    // Armazenar o título na sessionStorage para usar na página de validação
-    sessionStorage.setItem('validationTitle', title);
-    router.push(`/relatorios/validacao/${id}`);
-  };
+  const handleVideoClick = useCallback((id: string, title: string) => {
+    router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
+  }, [router]);
 
   // Função para renderizar os resultados do upload
   const renderUploadResults = () => {

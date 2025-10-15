@@ -9,10 +9,13 @@ import ValidationPanel from "@/components/validationPainel"
 import ErrorState from "@/components/errorState";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import { Button } from "@heroui/button";
+import { useSearchParams } from 'next/navigation';
 
 export default function ValidandoPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const urlTitle = searchParams.get('title');
 
   // Estados para armazenar os dados do upload
   const [musicInfo, setMusicInfo] = useState<MusicInfo[]>([]);
@@ -96,13 +99,19 @@ export default function ValidandoPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  // Buscar o título do vídeo do sessionStorage
+  // Buscar o título do vídeo do searchParams ou sessionStorage
   useEffect(() => {
-    const title = sessionStorage.getItem('validationTitle');
-    if (title) {
-      setValidationTitle(title);
+    if (urlTitle) {
+      setValidationTitle(urlTitle);
+    } else {
+      const title = sessionStorage.getItem('validationTitle');
+      if (title) {
+        setValidationTitle(title);
+      } else {
+        setValidationTitle(`Validação ${id}`);
+      }
     }
-  }, []);
+  }, [urlTitle, id]);
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -130,7 +139,7 @@ export default function ValidandoPage() {
     if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
-  };
+  }; 
 
   // Estado de carregamento
   if (isLoading) {
