@@ -5,26 +5,13 @@ import { Image } from "@heroui/image";
 
 export default function Home() {
   return (
-    <div className="
-      min-h-screen 
-      text-white 
-      flex flex-col
-      font-sans 
-      bg-[url('/Home.png')] 
-      bg-cover 
-      bg-center 
-      bg-no-repeat 
-      h-230">
+    <div className={`
+        min-h-screen text-white flex flex-col font-sans 
+        bg-[url('/Home.png')] bg-cover bg-center bg-no-repeat
+        `}>
       <div className=" 
-        backdrop-blur-md
-        bg-white/3                
-        border border-white/3       
-        p-8                           
-        rounded-3xl           
-        shadow-2xl                    
-        text-white        
-        mx-40   
-        my-auto
+        backdrop-blur-md bg-white/3 border border-white/3 
+        p-8 rounded-3xl shadow-2xl text-white mx-40 my-auto
         ">
       <header className="flex justify-between items-center py-6 px-16">
       
