@@ -1,15 +1,19 @@
-import {Chip} from "@heroui/chip";
+import { Chip } from "@heroui/chip";
 
-const MusicCounter = ({ current, total }: { current: number; total: number }) => {
-    return (
-      <Chip 
-        variant="flat" 
-        size="lg"
-        className="mt-6 text-[#FFFFFFA] font-semibold px-6 py-4 text-lg bg-purple-600/0"
-      >
-        {current} de {total} músicas
-      </Chip>
-    );
-  };
+interface MusicCounterProps {
+  current: number;
+  total: number;
+}
 
-  export default MusicCounter;
+export default function MusicCounter({ current, total }: MusicCounterProps) {
+  return (
+    <Chip 
+      color="primary" 
+      variant="flat" 
+      size="lg"
+      className="mt-6 bg-purple-600/20 text-white-600 font-semibold px-6 py-3 text-lg"
+    >
+      {current} de {total} músicas
+    </Chip>
+  );
+}

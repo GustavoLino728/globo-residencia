@@ -10,8 +10,8 @@ export interface MusicInfo {
     tempoFim: string;
     isrc: string;
     tempoTotal: string;
+    imagemReportagem?: string; // Campo opcional para a imagem da reportagem
   }
-  
 interface MusicInfoCardProps {
   info: MusicInfo;
   validationStatus?: 'approved' | 'rejected';
