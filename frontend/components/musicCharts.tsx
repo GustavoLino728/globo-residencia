@@ -26,7 +26,8 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
       value,
       color: getColorByIndex(index)
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5); // Top 5 gravadoras
 
   // Processar dados para gráfico de artistas
   const artistaMap = new Map<string, number>();
@@ -42,7 +43,7 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
       color: getColorByIndex(index)
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 8); // Top 8 artistas
+    .slice(0, 5); // Top 5 artistas
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -82,13 +83,13 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
         <CardBody className="p-4 md:p-5">
           <h3 className="text-base md:text-lg font-semibold text-white mb-4">Top Artistas</h3>
           <div className="space-y-3">
-            {artistaData.slice(0, 6).map((item, index) => {
+            {artistaData.map((item, index) => {
               const maxValue = artistaData[0].value;
               const percentage = (item.value / maxValue) * 100;
               
               return (
                 <div key={item.label} className="flex items-center space-x-3">
-                  <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-[10px]">
+                  <div className="w-6 h-6 bg-white/20 border border-white/30 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg leading-none">
                     {index + 1}
                   </div>
                   <div className="flex-1 space-y-1">
@@ -163,16 +164,16 @@ function getEfeitosSonorosData(musicData: MusicInfo[]): ChartData[] {
 // Função para obter cores baseadas no índice
 function getColorByIndex(index: number): string {
   const colors = [
-    '#8B5CF6', // purple-500
-    '#EC4899', // pink-500
-    '#06B6D4', // cyan-500
-    '#10B981', // emerald-500
-    '#F59E0B', // amber-500
-    '#EF4444', // red-500
-    '#3B82F6', // blue-500
-    '#84CC16', // lime-500
-    '#F97316', // orange-500
-    '#6366F1', // indigo-500
+    '#6D28D9', // purple-700 - mais escuro
+    '#BE185D', // pink-700 - mais escuro
+    '#0369A1', // sky-700 - mais escuro
+    '#047857', // emerald-700 - mais escuro
+    '#B45309', // amber-700 - mais escuro
+    '#B91C1C', // red-700 - mais escuro
+    '#1D4ED8', // blue-700 - mais escuro
+    '#4D7C0F', // lime-700 - mais escuro
+    '#C2410C', // orange-700 - mais escuro
+    '#4338CA', // indigo-700 - mais escuro
   ];
   return colors[index % colors.length];
 }

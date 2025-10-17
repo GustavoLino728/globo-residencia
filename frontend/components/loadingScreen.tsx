@@ -52,16 +52,28 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
   }, [onComplete, steps.length]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
+    <div 
+      className="fixed inset-0 flex items-center justify-center z-50 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url(/Home.png)' }}
+    >
+      {/* Overlay escuro para melhor legibilidade */}
+      <div className="absolute inset-0 bg-black/50"></div>
       
       <div className="relative z-10 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-12 shadow-2xl max-w-md w-full mx-4">
         {/* Animated icon */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            {progress < 100 ? (
+              <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <div className="w-20 h-20 border-4 border-green-500 rounded-full flex items-center justify-center bg-green-500/20">
+                <div className="w-16 h-16 border-4 border-green-500 rounded-full flex items-center justify-center bg-green-500/30">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
                 <img 
@@ -76,7 +88,7 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
 
         {/* Title */}
         <h2 className="text-2xl font-bold text-white text-center mb-4">
-          Processando Arquivo
+          {progress < 100 ? 'Processando Arquivo' : 'Concluído!'}
         </h2>
 
         {/* File name */}
@@ -115,12 +127,14 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
           </div>
         </div>
 
-        {/* Animated dots */}
-        <div className="flex justify-center mt-6 space-x-1">
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-          <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-        </div>
+        {/* Animated dots - only show when processing */}
+        {progress < 100 && (
+          <div className="flex justify-center mt-6 space-x-1">
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+        )}
       </div>
 
       {/* Bottom gradient accent */}

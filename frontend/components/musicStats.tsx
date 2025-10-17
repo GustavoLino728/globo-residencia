@@ -88,7 +88,7 @@ const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
               <div key={`${music.musica}-${music.artista}`} 
                    className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-[9px]">
+                  <div className="w-6 h-6 bg-white/20 border border-white/30 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg leading-none">
                     {index + 1}
                   </div>
                   <div>
@@ -143,8 +143,17 @@ const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
 // Função auxiliar para converter tempo para segundos
 function parseTimeToSeconds(timeString: string): number {
   const parts = timeString.split(':');
-  if (parts.length === 2) {
-    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  if (parts.length === 3) {
+    // Formato HH:MM:SS
+    const hours = parseInt(parts[0]) || 0;
+    const minutes = parseInt(parts[1]) || 0;
+    const seconds = parseInt(parts[2]) || 0;
+    return hours * 3600 + minutes * 60 + seconds;
+  } else if (parts.length === 2) {
+    // Formato MM:SS
+    const minutes = parseInt(parts[0]) || 0;
+    const seconds = parseInt(parts[1]) || 0;
+    return minutes * 60 + seconds;
   }
   return 0;
 }

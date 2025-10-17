@@ -5,7 +5,17 @@ import { Image } from "@heroui/image";
 
 export default function Home() {
   return (
-    <div>
+    <div className="min-h-screen text-white flex flex-col font-sans relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Home.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
       <div className=" 
         backdrop-blur-md
         bg-white/3                
@@ -56,7 +66,7 @@ export default function Home() {
               color="foreground" 
               href="/upload"
             >  
-                Comece já!
+              Comece já!
             </Link>
           </Button>
         </div>

@@ -13,6 +13,9 @@ const config = {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
+      height: {
+        '230': '230px',
+      },
     },
   },
   darkMode: "class",

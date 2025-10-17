@@ -71,10 +71,16 @@ PROJECT: Globo Residência - Validação Musical
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
-      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4 border border-white/20 animate-in zoom-in-95 duration-300">
-        {/* Ícone de sucesso com animação */}
+      <div 
+        className="rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4 border border-white/20 animate-in zoom-in-95 duration-300 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/Home.png)' }}
+      >
+        {/* Overlay escuro para melhor legibilidade do conteúdo */}
+        <div className="absolute inset-0 bg-black/50 rounded-3xl"></div>
+        <div className="relative z-10">
+        {/* Ícone de sucesso fixo */}
         <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center animate-pulse">
+          <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -147,6 +153,7 @@ PROJECT: Globo Residência - Validação Musical
           <p className="text-white/60 text-xs">
             O arquivo EDL contém todas as informações das músicas validadas
           </p>
+        </div>
         </div>
       </div>
     </div>
