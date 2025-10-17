@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-<<<<<<< HEAD
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import NavigationControls from "@/components/navigationControl";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
+import Image from "next/image";
 
 // Dados de exemplo para demonstração - agora como array de arrays de músicas
 const sampleMusicData: Record<string, MusicInfo[]> = {
@@ -112,47 +112,15 @@ const MusicCounter = ({ current, total }: { current: number; total: number }) =>
     </Chip>
   );
 };
-=======
-import EDLDownloadModal from "@/components/edlDownloadModal";
-import  { VideoPlayer }  from "@/components/videoPlayer";
-import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
-import ValidationPanel from "@/components/validationPainel"
-import ErrorState from "@/components/errorState";
-import { useSearchParams } from 'next/navigation';
->>>>>>> 9299e6826abd3b2a9bf01e2a4cd06aa5370f4955
 
 export default function ValidandoPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const id = params.id as string;
-  const urlTitle = searchParams.get('title');
-  
-  const musicInfo = sampleMusicData[id];
-  const isNewFile = !musicInfo;
-  const isNewFileId = id.includes('-') && id.split('-').length > 1;
 
-  const currentMusicData = musicInfo || (
-    isNewFile && isNewFileId ? defaultUndefinedMusicData : []
-  );
+  // Busca os dados da música baseado no ID da rota
+  const musicInfo = sampleMusicData[id];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
-  const [validatedSongs, setValidatedSongs] = useState<Record<number, 'approved' | 'rejected'>>({});
-  const [showEDLModal, setShowEDLModal] = useState(false);
-  const allSongsValidated = currentMusicData ? Object.keys(validatedSongs).length === currentMusicData.length : false;
-  
-  const handleGenerateEdl = () => {
-    console.log("Abrindo modal de download EDL...");
-    setShowEDLModal(true);
-  };
-
-  useEffect(() => {
-    if (urlTitle) {
-      setValidationTitle(urlTitle);
-    } else {
-      setValidationTitle(`Validação ${id}`); 
-    }
-  }, [urlTitle, id]);
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
@@ -161,82 +129,121 @@ export default function ValidandoPage() {
   };
 
   const handleNext = () => {
-    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
+    if (musicInfo && currentIndex < musicInfo.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
   };
 
   const handleApprove = () => {
-    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'approved' }));
     console.log("Música aprovada!");
-};
+    if (musicInfo && currentIndex < musicInfo.length - 1) {
+      setTimeout(() => handleNext(), 500);
+    }
+  };
 
-const handleReject = () => {
-    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'rejected' }));
+  const handleReject = () => {
     console.log("Música rejeitada!");
-};
+    if (musicInfo && currentIndex < musicInfo.length - 1) {
+      setTimeout(() => handleNext(), 500);
+    }
+  };
 
-useEffect(() => {
-  if (validatedSongs[currentIndex]) { 
-      const hasNext = currentMusicData && currentIndex < currentMusicData.length - 1;
-      if (hasNext) {
-          const timer = setTimeout(() => {
-              setCurrentIndex(currentIndex + 1);
-          }, 500); 
-          return () => clearTimeout(timer); 
-      }
-  }
-}, [validatedSongs, currentIndex, currentMusicData]); 
-
-  if (!currentMusicData || currentMusicData.length === 0) {
+  if (!musicInfo) {
     return (
-      <ErrorState
-        id={id} 
-        isNewFile={isNewFile} 
-        isNewFileId={isNewFileId} 
-        sampleMusicData={sampleMusicData}
-      />
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+        <div className="mb-4">
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Conteúdo não encontrado
+          </h2>
+          <p className="text-muted-foreground">
+            O ID "{id}" não corresponde a nenhuma validação disponível.
+          </p>
+        </div>
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground mb-2">
+            IDs disponíveis para teste:
+          </p>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {Object.keys(sampleMusicData).map((availableId) => (
+              <span
+                key={availableId}
+                className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm"
+              >
+                {availableId}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col relative overflow-hidden">
-
+    <div className="min-h-screen text-white flex flex-col font-sans relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Home.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+      {/* Background decorative elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
       
       <main className="flex-1 p-8 relative z-10">
         <h1 className="text-4xl font-bold mb-8 text-white text-center">
-          {validationTitle}
+          Validação {id}
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+          {/* Video Player Section */}
+          <div className="flex items-center">
+            <div className="w-full h-150 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex items-center justify-center shadow-2xl">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 5v10l8-5-8-5z"/>
+                  </svg>
+                </div>
+                <p className="text-white/80 font-medium">Player de vídeo</p>
+              </div>
+            </div>
+          </div>
 
-          <VideoPlayer/>
+          {/* Validation Panel with Glass Effect */}
+          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl">
+            <NavigationControls
+              currentIndex={currentIndex}
+              total={musicInfo.length}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+            />
 
-          <ValidationPanel
-          isNewFile={isNewFile}
-          isNewFileId={isNewFileId}
-          currentMusicData={currentMusicData}
-          currentIndex={currentIndex}
-          validatedSongs={validatedSongs}
-          allSongsValidated={allSongsValidated}
-          handlePrevious={handlePrevious}
-          handleNext={handleNext}
-          handleApprove={handleApprove}
-          handleReject={handleReject}
-          onGenerateEdl={handleGenerateEdl} 
-          />
+            <div className="mb-6">
+              <MusicInfoCard info={musicInfo[currentIndex]} />
+            </div>
+
+            <ApprovalButtons
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
+
+            <div className="flex justify-center">
+              <MusicCounter
+                current={currentIndex + 1}
+                total={musicInfo.length}
+              />
+            </div>
+          </div>
         </div>
-
       </main>
 
-      <EDLDownloadModal
-        isOpen={showEDLModal}
-        onClose={() => setShowEDLModal(false)}
-        fileName={validationTitle}
-        validationTitle={validationTitle}
-      />
+      {/* Bottom gradient accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
     </div>
   );
 }
