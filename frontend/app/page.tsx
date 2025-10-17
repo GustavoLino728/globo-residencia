@@ -1,20 +1,22 @@
 "use client";
 import { Link } from "@heroui/link";
 import { Button } from "@heroui/button";
-import { Image } from "@heroui/image";
+import { Image as HeroImage } from "@heroui/image";
+import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="
-      min-h-screen 
-      text-white 
-      flex flex-col
-      font-sans 
-      bg-[url('/Home.png')] 
-      bg-cover 
-      bg-center 
-      bg-no-repeat 
-      h-230">
+    <div className="min-h-screen text-white flex flex-col font-sans relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Home.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
       <div className=" 
         backdrop-blur-md
         bg-white/3                
@@ -70,7 +72,7 @@ export default function Home() {
           </Button>
         </div>
 
-        <Image
+        <HeroImage
           isBlurred
           alt="Logo da Globo - Principal"
           src="/logoGlobo.svg"

@@ -1,4 +1,5 @@
 import VideoCarousel from "@/components/videoCarossel";
+import Image from "next/image";
 
 const Index = () => {
   // Mock data for videos
@@ -69,7 +70,17 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen text-white flex flex-col font-sans relative">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Home.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
