@@ -26,7 +26,8 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
       value,
       color: getColorByIndex(index)
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5); // Top 5 gravadoras
 
   // Processar dados para gráfico de artistas
   const artistaMap = new Map<string, number>();
@@ -42,7 +43,7 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
       color: getColorByIndex(index)
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 8); // Top 8 artistas
+    .slice(0, 5); // Top 5 artistas
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -82,7 +83,7 @@ const MusicCharts = ({ musicData }: MusicChartsProps) => {
         <CardBody className="p-4 md:p-5">
           <h3 className="text-base md:text-lg font-semibold text-white mb-4">Top Artistas</h3>
           <div className="space-y-3">
-            {artistaData.slice(0, 6).map((item, index) => {
+            {artistaData.map((item, index) => {
               const maxValue = artistaData[0].value;
               const percentage = (item.value / maxValue) * 100;
               

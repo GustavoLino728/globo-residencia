@@ -2,7 +2,7 @@
 "use client";
 import MusicStats from "@/components/musicStats";
 import MusicCharts from "@/components/musicCharts";
-import { dashboardMusicData } from "@/data/musicMock";
+import { dashboardMusicData } from "@/components/musicMock";
 import PageLayout from "@/components/PageLayout";
 import GlassCard from "@/components/GlassCard";
 

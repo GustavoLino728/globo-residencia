@@ -155,20 +155,16 @@ export default function MediaUpload() {
           </p>
           
         </div>
-        <div className="transition-all duration-500 ease-in-out transform flex justify-center">
-          <Button
-            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
-            onClick={() => {
-              if (fileName) {
-                handleUpload();
-              } else {
-                document.getElementById("media-upload")?.click()
-              }
-            }}
-          >
-            {fileName ? 'Enviar' : 'Fazer upload'}
-          </Button>
-        </div>
+        {!fileName && (
+          <div className="transition-all duration-500 ease-in-out transform flex justify-center">
+            <Button
+              className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
+              onClick={() => document.getElementById("media-upload")?.click()}
+            >
+              Fazer upload
+            </Button>
+          </div>
+        )}
         <div className={`transition-all duration-500 ease-in-out transform ${
           fileName && mediaURL
             ? isRemoving 
@@ -204,18 +200,24 @@ export default function MediaUpload() {
                 </video>
               )}
             </div>
-            <div className="flex justify-center">
+            <div className="flex gap-3 justify-center">
               <Button
-                className={`justify-center transition-all duration-300 ease-in-out ${
+                className={`justify-center transition-all duration-300 ease-in-out px-6 py-2 text-sm font-semibold rounded-full ${
                   isRemoving ? 'scale-90 opacity-75' : 'scale-100 opacity-100'
                 }`}
                 color="danger"
                 variant="flat"
-                size="sm"
                 onClick={handleRemove}
                 disabled={isRemoving}
               >
                 {isRemoving ? 'Removendo...' : 'Remover arquivo'}
+              </Button>
+              <Button
+                className="text-white font-semibold rounded-full px-6 py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 transition-all duration-300 ease-in-out"
+                onClick={handleUpload}
+                disabled={isRemoving}
+              >
+                Enviar
               </Button>
             </div>
           </div>
