@@ -10,12 +10,11 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    /* eslint-disable no-console */
     console.error(error);
   }, [error]);
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen text-white flex flex-col font-sans bg-[url('/Home.png')] bg-cover bg-center bg-no-repeat h-230">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
@@ -40,6 +39,17 @@ export default function Error({
 
       {/* Bottom gradient accent */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
+=======
+    <div>
+      <h2>Something went wrong!</h2>
+      <button
+        onClick={
+          () => reset()
+        }
+      >
+        Try again
+      </button>
+>>>>>>> 9299e6826abd3b2a9bf01e2a4cd06aa5370f4955
     </div>
   );
 }

@@ -1,7 +1,15 @@
+"use client";
+
 import VideoCarousel from "@/components/videoCarossel";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+import EDLDownloadModal from "@/components/edlDownloadModal";
 
 const Index = () => {
+  const router = useRouter();
+  const [modalData, setModalData] = useState<{ id: string, title: string } | null>(null);
+
   // Mock data for videos
   const notFinishedVideos = [
     {
@@ -69,8 +77,16 @@ const Index = () => {
     },
   ];
 
+  const handleVideoClick = useCallback((id: string, title: string) => {
+    router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
+  }, [router]);
+
+  const handleFinishedVideoClick = useCallback((id: string, title: string) => {
+    setModalData({ id, title });
+  }, []);
+
   return (
-    <div className="min-h-screen text-white flex flex-col font-sans relative">
+    <div className="min-h-screen text-white flex flex-col relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -92,16 +108,29 @@ const Index = () => {
 
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <VideoCarousel title="Não Finalizados" videos={notFinishedVideos} />
+            <VideoCarousel 
+              title="Não Finalizados" 
+              videos={notFinishedVideos} 
+              onVideoClick={handleVideoClick}
+            />
           </div>
           <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <VideoCarousel title="Finalizados" videos={finishedVideos} />
+            <VideoCarousel 
+            title="Finalizados" 
+            videos={finishedVideos} 
+            onVideoClick={handleFinishedVideoClick}
+            />
           </div>
         </div>
       </main>
 
-      {/* Bottom gradient accent */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-500 via-purple-500 via-blue-500 to-green-500"></div>
+      <EDLDownloadModal
+        isOpen={!!modalData}
+        onClose={() => setModalData(null)} 
+        fileName={modalData?.id || ""} 
+        validationTitle={modalData?.title || ""} 
+      />
+
     </div>
   );
 };

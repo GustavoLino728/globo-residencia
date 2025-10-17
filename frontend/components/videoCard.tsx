@@ -2,14 +2,25 @@
 import { Play } from "lucide-react";
 
 interface VideoCardProps {
+  id?: string;
   thumbnail: string;
   title: string;
   duration?: string;
+  onClick?: (id: string, title: string) => void;
 }
 
-const VideoCard = ({ thumbnail, title, duration = "12:34" }: VideoCardProps) => {
+const VideoCard = ({ id, thumbnail, title, duration = "12:34", onClick }: VideoCardProps) => {
+  const handleClick = () => {
+    if (id && onClick) {
+      onClick(id, title);
+    }
+  };
+
   return (
-    <div className="group/card relative flex-shrink-0 w-64 cursor-pointer">
+    <div 
+      className="group/card relative flex-shrink-0 w-64 cursor-pointer"
+      onClick={handleClick}
+    >
        <div className="relative overflow-hidden rounded-xl bg-[hsl(var(--video-card-background))] transition-all duration-300 group-hover/card:bg-[hsl(var(--video-card-hover))] group-hover/card:scale-105 group-hover/card:shadow-2xl group-hover/card:shadow-white/20">
         <div className="aspect-video relative overflow-hidden">
           <img 

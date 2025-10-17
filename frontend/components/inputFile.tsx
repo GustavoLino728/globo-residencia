@@ -1,16 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
+import LoadingScreen from "./loadingScreen";
+import Notification from "./notification";
 
 export default function MediaUpload() {
+  const router = useRouter();
   const [fileName, setFileName] = useState<string | null>(null);
   const [mediaURL, setMediaURL] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
   const urlRef = useRef<string | null>(null);
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
@@ -43,6 +49,38 @@ export default function MediaUpload() {
 
     const file = e.dataTransfer.files?.[0];
     if (file) handleFile(file);
+  };
+
+  const handleUpload = () => {
+    if (fileName) {
+      setIsLoading(true);
+      // Simular upload e processamento
+      // A tela de carregamento será mostrada e o onComplete será chamado automaticamente
+    }
+  };
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+    console.log("Upload e análise concluídos!");
+    
+    // Mostrar notificação de sucesso
+    setShowNotification(true);
+    
+    // Usar setTimeout para evitar setState durante render
+    setTimeout(() => {
+      // Gerar um ID único baseado no nome do arquivo e timestamp
+      const fileId = `${Date.now()}-${fileName?.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      
+      // Armazenar o nome do arquivo no sessionStorage para usar na página de validação
+      if (fileName) {
+        sessionStorage.setItem('validationTitle', fileName);
+      }
+      
+      // Redirecionar para a página de validação após um pequeno delay para mostrar a notificação
+      setTimeout(() => {
+        router.push(`/relatorios/validacao/${fileId}`);
+      }, 2000); // 2 segundos para mostrar a notificação
+    }, 100);
   };
 
   const handleRemove = () => {
@@ -80,6 +118,7 @@ export default function MediaUpload() {
   }, []);
 
   return (
+    <>
     <Card
       className="max-w-md mx-auto p-8 rounded-2xl bg-white text-center border-2 border-solid border-[#4B4B53] mt-20 mb-20"
       onDragOver={(e) => {
@@ -118,12 +157,10 @@ export default function MediaUpload() {
         </div>
         <div className="transition-all duration-500 ease-in-out transform flex justify-center">
           <Button
-            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg ${
-              fileName ? 'bg-[#1FC66F]' : 'bg-[#6F1FC6]'
-            }`}
+            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
             onClick={() => {
               if (fileName) {
-                /* ação de envio aqui */
+                handleUpload();
               } else {
                 document.getElementById("media-upload")?.click()
               }
@@ -186,5 +223,23 @@ export default function MediaUpload() {
 
       </CardBody>
     </Card>
+
+    {/* Loading Screen */}
+    {isLoading && fileName && (
+      <LoadingScreen 
+        fileName={fileName} 
+        onComplete={handleLoadingComplete}
+      />
+    )}
+
+    {/* Notification */}
+    <Notification
+      isVisible={showNotification}
+      message={`${fileName} carregado com sucesso! Redirecionando para validação...`}
+      type="success"
+      duration={3000}
+      onClose={() => setShowNotification(false)}
+    />
+    </>
   );
 }

@@ -13,11 +13,12 @@ export interface MusicInfo {
     imagemReportagem?: string; // Campo opcional para a imagem da reportagem
   }
 interface MusicInfoCardProps {
-info: MusicInfo;
+  info: MusicInfo;
+  validationStatus?: 'approved' | 'rejected';
 }
 
 
-const MusicInfoCard = ({ info }: MusicInfoCardProps) => {
+const MusicInfoCard = ({ info, validationStatus }: MusicInfoCardProps) => {
   // Verificação de segurança para evitar erros
   if (!info) {
     return (
@@ -32,9 +33,22 @@ const MusicInfoCard = ({ info }: MusicInfoCardProps) => {
   }
 
   return (
-    <div className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl">
+    <div className={`w-full bg-white/5 backdrop-blur-sm border rounded-2xl shadow-2xl ${
+      validationStatus === 'approved' 
+        ? 'border-green-500/50' 
+        : validationStatus === 'rejected'
+        ? 'border-red-500/50'
+        : 'border-white/10'
+    }`}>
       <div className="p-6">
         <div className="text-white space-y-4">
+          {validationStatus && (
+            <div className={`mb-4 text-sm font-medium ${
+              validationStatus === 'approved' ? 'text-green-400' : 'text-red-400'
+            }`}>
+              Status: {validationStatus === 'approved' ? 'Aprovada' : 'Rejeitada'}
+            </div>
+          )}
           <InfoRow label="Música" value={info.musica || "N/A"} highlight />
           <InfoRow label="Efeito sonoro" value={info.efeitoSonoro || "N/A"} />
           <InfoRow label="Artista" value={info.artista || "N/A"} />
