@@ -33,7 +33,16 @@ export const viewport: Viewport = {
 export default function RootLayout({children}: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`dark ${globotipoTexto.variable}`}>
-      <body>
+      <body className="
+            min-h-screen 
+            text-white 
+            flex flex-col
+            font-sans 
+            bg-[url('/Home.png')] 
+            bg-cover 
+            bg-center 
+            bg-no-repeat 
+            h-230">
         <Providers>
           {children}
         </Providers>
