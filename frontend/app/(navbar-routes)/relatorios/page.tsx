@@ -1,6 +1,8 @@
 "use client";
 
 import VideoCarousel from "@/components/videoCarossel";
+import PageLayout from "@/components/PageLayout";
+import GlassCard from "@/components/GlassCard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { notFinishedVideos, finishedVideos } from "@/data/videoMocks";
@@ -65,7 +67,7 @@ const Index = () => {
     if (!uploadResults) return null;
 
     return (
-      <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl mb-8">
+      <div>
         <h2 className="text-2xl font-bold mb-4 text-white">Resultados do Último Upload</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -112,11 +114,7 @@ const Index = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   return (
-    <div>
-      
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-      
+    <PageLayout title="Relatórios">
       {/* Mensagem de sucesso ao limpar resultados */}
       {showClearMessage && (
         <div className="fixed top-8 right-8 z-50 bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-fade-in">
@@ -126,40 +124,38 @@ const Index = () => {
           <span className="font-semibold">Resultados limpos com sucesso!</span>
         </div>
       )}
-      
-      <main className="flex-1 p-8 relative z-10">
-        <h1 className="text-4xl font-bold mb-8 text-white text-center">
-          Relatórios
-        </h1>
 
-        <div className="max-w-7xl mx-auto space-y-8">
-          {loading ? (
-            <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
-            </div>
-          ) : (
-            <>
-              {renderUploadResults()}
-              
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-                <VideoCarousel 
-                  title="Não Finalizados" 
-                  videos={notFinishedVideos} 
-                  onVideoClick={handleVideoClick}
-                />
-              </div>
-              
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
-                <VideoCarousel 
-                  title="Finalizados" 
-                  videos={finishedVideos} 
-                  onVideoClick={handleFinishedVideoClick}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </main>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {loading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
+          </div>
+        ) : (
+          <>
+            {uploadResults && (
+              <GlassCard>
+                {renderUploadResults()}
+              </GlassCard>
+            )}
+            
+            <GlassCard>
+              <VideoCarousel 
+                title="Não Finalizados" 
+                videos={notFinishedVideos} 
+                onVideoClick={handleVideoClick}
+              />
+            </GlassCard>
+            
+            <GlassCard>
+              <VideoCarousel 
+                title="Finalizados" 
+                videos={finishedVideos} 
+                onVideoClick={handleFinishedVideoClick}
+              />
+            </GlassCard>
+          </>
+        )}
+      </div>
 
       <EDLDownloadModal
         isOpen={!!modalData}
@@ -167,8 +163,7 @@ const Index = () => {
         fileName={modalData?.id || ""} 
         validationTitle={modalData?.title || ""} 
       />
-
-    </div>
+    </PageLayout>
   );
 };
 
