@@ -10,6 +10,8 @@ import ErrorState from "@/components/errorState";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import { Button } from "@heroui/button";
 import { useSearchParams } from 'next/navigation';
+import PageLayout from "@/components/PageLayout"
+
 
 export default function ValidandoPage() {
   const params = useParams();
@@ -176,43 +178,38 @@ export default function ValidandoPage() {
   }
 
   return (
-    <div>
+    <PageLayout title={`Validação ${validationTitle}`}>
+      <div>
+        
+        <main className="flex-1 p-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-      
-      <main className="flex-1 p-8 relative z-10">
-        <h1 className="text-4xl font-bold mb-8 text-white text-center">
-          {validationTitle}
-        </h1>
+            <VideoPlayer/>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-[90%] mx-auto">
+            <ValidationPanel
+            isNewFile={isNewFile}
+            isNewFileId={isNewFileId}
+            currentMusicData={currentMusicData}
+            currentIndex={currentIndex}
+            validatedSongs={validatedSongs}
+            allSongsValidated={allSongsValidated}
+            handlePrevious={handlePrevious}
+            handleNext={handleNext}
+            handleApprove={handleApprove}
+            handleReject={handleReject}
+            onGenerateEdl={handleGenerateEdl} 
+            />
+          </div>
 
-          <VideoPlayer/>
+        </main>
 
-          <ValidationPanel
-          isNewFile={isNewFile}
-          isNewFileId={isNewFileId}
-          currentMusicData={currentMusicData}
-          currentIndex={currentIndex}
-          validatedSongs={validatedSongs}
-          allSongsValidated={allSongsValidated}
-          handlePrevious={handlePrevious}
-          handleNext={handleNext}
-          handleApprove={handleApprove}
-          handleReject={handleReject}
-          onGenerateEdl={handleGenerateEdl} 
-          />
-        </div>
-
-      </main>
-
-      <EDLDownloadModal
-        isOpen={showEDLModal}
-        onClose={() => setShowEDLModal(false)}
-        fileName={validationTitle}
-        validationTitle={validationTitle}
-      />
-    </div>
+        <EDLDownloadModal
+          isOpen={showEDLModal}
+          onClose={() => setShowEDLModal(false)}
+          fileName={validationTitle}
+          validationTitle={validationTitle}
+        />
+      </div>
+    </PageLayout>
   );
 }
