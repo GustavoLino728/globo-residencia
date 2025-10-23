@@ -52,11 +52,12 @@ const LoadingScreen = ({ fileName, onComplete }: LoadingScreenProps) => {
   }, [onComplete, steps.length]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center z-50">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-      
+    <div 
+      className="fixed inset-0 flex items-center justify-center z-50 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url(/Home.png)', borderRadius: '24px 24px 0px 0px'
+      }}
+    >
+
       <div className="relative z-10 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-12 shadow-2xl max-w-md w-full mx-4">
         {/* Animated icon */}
         <div className="flex justify-center mb-8">
