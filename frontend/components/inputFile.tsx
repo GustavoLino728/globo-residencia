@@ -347,18 +347,7 @@ export default function MediaUpload() {
           
         </div>
         <div className="transition-all duration-500 ease-in-out transform flex justify-center">
-          <Button
-            className={`text-white font-semibold rounded-full px-12 py-4 w-full text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
-            onClick={() => {
-              if (fileName) {
-                handleUpload();
-              } else {
-                document.getElementById("media-upload")?.click()
-              }
-            }}
-          >
-            {fileName ? 'Enviar' : 'Fazer upload'}
-          </Button>
+
         </div>
         <div className={`transition-all duration-500 ease-in-out transform ${
           fileName && mediaURL
@@ -395,19 +384,31 @@ export default function MediaUpload() {
                 </video>
               )}
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-between">
               <Button
-                className={`justify-center transition-all duration-300 ease-in-out ${
+                className={`justify-center px-6 text-sm rounded-full transition-all duration-300 ease-in-out ${
                   isRemoving ? 'scale-90 opacity-75' : 'scale-100 opacity-100'
                 }`}
                 color="danger"
                 variant="flat"
-                size="sm"
                 onClick={handleRemove}
                 disabled={isRemoving}
               >
-                {isRemoving ? 'Removendo...' : 'Remover arquivo'}
+                {isRemoving ? 'Removendo...' : 'Remover'}
               </Button>
+
+              <Button
+                className={`text-white px-12 font-semibold rounded-full text-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 `}
+                onClick={() => {
+                  if (fileName) {
+                    handleUpload();
+                  } else {
+                    document.getElementById("media-upload")?.click()
+                  }
+                }}
+              >
+                {fileName ? 'Enviar' : 'Fazer upload'}
+          </Button>
             </div>
           </div>
         </div>
