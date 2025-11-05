@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/(login-routes)/cadastro/page": "app/(login-routes)/cadastro/page.js",
+  "/(navbar-routes)/relatorios/page": "app/(navbar-routes)/relatorios/page.js",
+  "/(login-routes)/home/page": "app/(login-routes)/home/page.js",
+  "/(navbar-routes)/dashboard/page": "app/(navbar-routes)/dashboard/page.js",
+  "/(login-routes)/login/page": "app/(login-routes)/login/page.js",
+  "/(navbar-routes)/upload/page": "app/(navbar-routes)/upload/page.js",
+  "/(navbar-routes)/relatorios/validacao/[id]/page": "app/(navbar-routes)/relatorios/validacao/[id]/page.js"
+}
