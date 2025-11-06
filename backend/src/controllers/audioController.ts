@@ -19,29 +19,41 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   };
   appendLog('Received /buscaAudD request');
 
+  // DECLARAR inputPath NO ESCOPO EXTERNO
+  let inputPath: string = '';
+
   // Este endpoint aceita multipart/form-data com `file`, raw binary ou JSON base64
-  let inputPath: string;
   const contentType = (request.headers['content-type'] || '').toString();
+  
   if (contentType.includes('multipart/form-data')) {
     const file = await (request as any).file();
     if (!file) return reply.status(400).send({ error: 'Nenhum arquivo multipart recebido' });
     appendLog('Saving multipart upload to disk');
-    inputPath = await saveFile(file);
+    
+    // MUDANÇA AQUI: usar fileInfo e extrair localPath
+    const fileInfo = await saveFile(file);
+    inputPath = fileInfo.localPath;  // ATRIBUIR À VARIÁVEL EXTERNA
     appendLog('Saved upload to ' + inputPath);
+    
   } else if (contentType.includes('application/octet-stream') || contentType.startsWith('audio/') || contentType.startsWith('video/')) {
     const buf = request.body as Buffer;
-    if (!buf || !Buffer.isBuffer(buf) || buf.length === 0) return reply.status(400).send({ error: 'Empty binary body' });
+    if (!buf || !Buffer.isBuffer(buf) || buf.length === 0) {
+      return reply.status(400).send({ error: 'Empty binary body' });
+    }
     appendLog('Saving raw binary body to disk');
     const filename = `upload-${Date.now()}.mxf`;
     const filePath = path.join(process.cwd(), 'uploads', filename);
     fs.writeFileSync(filePath, buf);
-    inputPath = filePath;
+    inputPath = filePath;  // ATRIBUIR À VARIÁVEL EXTERNA
     appendLog('Saved raw upload to ' + inputPath);
+    
   } else {
     const body = request.body as any;
-    if (!body || !body.data) return reply.status(400).send({ error: 'Missing data (base64) in body' });
+    if (!body || !body.data) {
+      return reply.status(400).send({ error: 'Missing data (base64) in body' });
+    }
     appendLog('Saving base64 upload to disk');
-    inputPath = await saveBase64ToFile(body.data, body.filename || 'input.mxf');
+    inputPath = await saveBase64ToFile(body.data, body.filename || 'input.mxf');  // ATRIBUIR À VARIÁVEL EXTERNA
     appendLog('Saved base64 upload to ' + inputPath);
   }
 
@@ -147,7 +159,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       }
     }
 
-    // Consolidar músicas encontradas: transformar `found` em uma lista de eventos com início/fim e metadados
+    // Consolidar músicas encontradas
     const musicasEncontradas: Array<{ inicioSegundos: number; fimSegundos: number; titulo?: string; artista?: string; isrc?: string; dataLancamento?: string; fonte?: any }> = [];
 
     function extractIsrc(meta: any): string | undefined {
@@ -194,7 +206,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       musicasEncontradas.push({ inicioSegundos: inicioSec, fimSegundos: fimSec, titulo, artista, isrc, dataLancamento: dataLanc, fonte: meta });
     }
 
-    // remover duplicatas simples e ordenar por tempo de início (em segundos)
+    // remover duplicatas simples e ordenar por tempo de início
     musicasEncontradas.sort((a, b) => a.inicioSegundos - b.inicioSegundos);
     const dedup: typeof musicasEncontradas = [];
     for (const m of musicasEncontradas) {
@@ -214,7 +226,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       }
     }
 
-    // cronograma permanece com inicioSegundos/fimSegundos
     const respostaTraduzida = {
       caminhoCombinado: combined,
       quantidadeSegmentos: segments.length,
