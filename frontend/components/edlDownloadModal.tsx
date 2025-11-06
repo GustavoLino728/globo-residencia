@@ -1,70 +1,203 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@heroui/button";
+
+interface MusicData {
+  musica: string;
+  efeitoSonoro?: string;
+  artista: string;
+  interprete: string;
+  gravadora: string;
+  tempoInicio: string;
+  tempoFim: string;
+  isrc: string;
+  tempoTotal: string;
+}
 
 interface EDLDownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
   fileName: string;
   validationTitle: string;
+  musicData?: MusicData[];
+  validatedSongs?: Record<number, 'approved' | 'rejected'>;
 }
 
-const EDLDownloadModal = ({ isOpen, onClose, fileName, validationTitle }: EDLDownloadModalProps) => {
+const EDLDownloadModal = ({ 
+  isOpen, 
+  onClose, 
+  fileName, 
+  validationTitle,
+  musicData = [],
+  validatedSongs = {}
+}: EDLDownloadModalProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Calcular estatísticas
+  const stats = useMemo(() => {
+    const approved = Object.values(validatedSongs).filter(status => status === 'approved').length;
+    const rejected = Object.values(validatedSongs).filter(status => status === 'rejected').length;
+    const total = musicData.length;
+    
+    // Calcular duração total do arquivo
+    let totalSeconds = 0;
+    
+    // Tentar pegar a duração total dos dados do upload no localStorage
+    try {
+      const uploadResults = localStorage.getItem('uploadResults');
+      if (uploadResults) {
+        const data = JSON.parse(uploadResults);
+        // Calcular baseado nos dados completos: segundosPorSegmento * quantidadeSegmentos
+        if (data.segundosPorSegmento && data.quantidadeSegmentos) {
+          totalSeconds = data.segundosPorSegmento * data.quantidadeSegmentos;
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao buscar dados do localStorage:', e);
+    }
+    
+    // Se não conseguiu do localStorage, calcular pelo maior tempoFim das músicas
+    if (totalSeconds === 0 && musicData.length > 0) {
+      musicData.forEach((music) => {
+        if (music.tempoFim && music.tempoFim !== '--:--' && music.tempoFim !== '00:00') {
+          try {
+            const timeParts = music.tempoFim.split(':');
+            if (timeParts.length === 2) {
+              const mins = parseInt(timeParts[0], 10);
+              const secs = parseInt(timeParts[1], 10);
+              if (!isNaN(mins) && !isNaN(secs)) {
+                const musicEndSeconds = (mins * 60) + secs;
+                if (musicEndSeconds > totalSeconds) {
+                  totalSeconds = musicEndSeconds;
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao processar tempo:', music.tempoFim, e);
+          }
+        }
+      });
+    }
+    
+    const totalMins = Math.floor(totalSeconds / 60);
+    const totalSecs = totalSeconds % 60;
+    const duration = totalSeconds > 0 
+      ? `${totalMins.toString().padStart(2, '0')}:${totalSecs.toString().padStart(2, '0')}`
+      : '';
+    
+    console.log('Stats calculadas:', { approved, rejected, total, duration, totalSeconds });
+    
+    return { approved, rejected, total, duration };
+  }, [musicData, validatedSongs]);
+
+  // Função para converter MM:SS em timecode (HH:MM:SS:FF)
+  const timeToTimecode = (time: string): string => {
+    if (!time || time === '--:--' || time === '00:00') return '00:00:00:00';
+    const [mins, secs] = time.split(':').map(Number);
+    const totalSecs = (mins * 60) + secs;
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const seconds = totalSecs % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:00`;
+  };
 
   const handleDownloadEDL = () => {
     setIsDownloading(true);
+    
     setTimeout(() => {
-      const edlContent = `TITLE: ${validationTitle}
-FCM: NON-DROP FRAME
-CREATED: ${new Date().toISOString()}
-PROJECT: Globo Residência - Validação Musical
+      // Cabeçalho do EDL
+      let edlContent = `TÍTULO: ${validationTitle}
+FORMATO: NON-DROP FRAME
+CRIADO EM: ${new Date().toLocaleString('pt-BR')}
+PROJETO: Globo Residência - Validação Musical
+ARQUIVO: ${fileName}
 
-001  V     C        00:00:00:00 00:00:05:55 00:00:00:00 00:00:05:55
-* FROM CLIP NAME: ${fileName}
-* MUSIC: Informação não encontrada
-* ARTIST: Artista desconhecido
-* INTERPRETER: Intérprete não identificado
-* RECORD_LABEL: Gravadora não identificada
-* ISRC: N/A
-* DURATION: 00:00:05:55
-* STATUS: VALIDATED
-
-002  V     C        00:00:05:55 00:00:08:03 00:00:05:55 00:00:08:03
-* FROM CLIP NAME: ${fileName}
-* MUSIC: We Will Rock You
-* ARTIST: Queen
-* INTERPRETER: Freddie Mercury
-* RECORD_LABEL: EMI Records
-* ISRC: GBUM71029679
-* DURATION: 00:00:02:08
-* STATUS: VALIDATED
-
-003  V     C        00:00:08:03 00:00:11:10 00:00:08:03 00:00:11:10
-* FROM CLIP NAME: ${fileName}
-* MUSIC: Imagine
-* ARTIST: John Lennon
-* INTERPRETER: John Lennon
-* RECORD_LABEL: Apple Records
-* ISRC: USRC17607839
-* DURATION: 00:00:03:07
-* STATUS: VALIDATED
+===================================================================
+MÚSICAS VALIDADAS
+===================================================================
 
 `;
 
-      const blob = new Blob([edlContent], { type: 'text/plain' });
+      // Adicionar cada música validada
+      let eventNumber = 1;
+      musicData.forEach((music, index) => {
+        const status = validatedSongs[index];
+        
+        // Apenas incluir músicas aprovadas no EDL
+        if (status === 'approved') {
+          edlContent += `MÚSICA ${eventNumber}
+────────────────────────────────────────────────────────────────
+NOME DO ARQUIVO: ${fileName}
+MÚSICA: ${music.musica || 'Não identificada'}
+ARTISTA: ${music.artista || 'Desconhecido'}
+INTÉRPRETE: ${music.interprete || 'Não identificado'}
+GRAVADORA: ${music.gravadora || 'Não identificada'}
+ISRC: ${music.isrc || 'N/A'}
+DURAÇÃO: ${music.tempoTotal || '00:00'}
+INÍCIO: ${music.tempoInicio || '00:00'}
+FIM: ${music.tempoFim || '00:00'}
+STATUS: APROVADA
+
+`;
+          eventNumber++;
+        }
+      });
+
+      // Adicionar resumo ao final
+      edlContent += `
+===================================================================
+RESUMO DA VALIDAÇÃO
+===================================================================
+
+Total de Músicas: ${stats.total}
+Músicas Aprovadas: ${stats.approved}
+Músicas Rejeitadas: ${stats.rejected}
+Duração Total do Arquivo: ${stats.duration || '00:00'}
+
+Data de Validação: ${new Date().toLocaleString('pt-BR')}
+Validado por: Sistema ContagIA
+
+===================================================================
+
+`;
+
+      // Se houver músicas rejeitadas, adicionar seção de rejeitadas
+      const rejectedMusics = musicData.filter((_, index) => validatedSongs[index] === 'rejected');
+      if (rejectedMusics.length > 0) {
+        edlContent += `
+MÚSICAS REJEITADAS (Não incluídas no EDL)
+===================================================================
+
+`;
+        rejectedMusics.forEach((music, idx) => {
+          edlContent += `${idx + 1}. ${music.musica || 'Não identificada'} - ${music.artista || 'Desconhecido'}
+   Tempo: ${music.tempoInicio} - ${music.tempoFim}
+   ISRC: ${music.isrc || 'N/A'}
+
+`;
+        });
+      }
+
+      // Criar e fazer download do arquivo
+      const blob = new Blob([edlContent], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${validationTitle.replace(/[^a-zA-Z0-9]/g, '_')}_EDL.txt`;
+      const safeFileName = validationTitle.replace(/[^a-zA-Z0-9-_]/g, '_');
+      link.download = `${safeFileName}_EDL.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
       setIsDownloading(false);
-    }, 2000);
+      
+      // Fechar o modal após download
+      setTimeout(() => {
+        onClose();
+      }, 500);
+    }, 1000);
   };
 
   if (!isOpen) return null;
@@ -114,15 +247,24 @@ PROJECT: Globo Residência - Validação Musical
         </div>
 
         {/* Estatísticas do EDL */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-white/5 rounded-lg p-3 text-center">
-            <p className="text-white/80 text-xs">Músicas Validadas</p>
-            <p className="text-white font-bold text-lg">3</p>
+            <p className="text-white/80 text-xs">Total</p>
+            <p className="text-white font-bold text-lg">{stats.total}</p>
           </div>
-          <div className="bg-white/5 rounded-lg p-3 text-center">
-            <p className="text-white/80 text-xs">Duração Total</p>
-            <p className="text-white font-bold text-lg">11:10</p>
+          <div className="bg-green-500/20 rounded-lg p-3 text-center border border-green-500/30">
+            <p className="text-white/80 text-xs">Aprovadas</p>
+            <p className="text-green-400 font-bold text-lg">{stats.approved}</p>
           </div>
+          <div className="bg-red-500/20 rounded-lg p-3 text-center border border-red-500/30">
+            <p className="text-white/80 text-xs">Rejeitadas</p>
+            <p className="text-red-400 font-bold text-lg">{stats.rejected}</p>
+          </div>
+        </div>
+
+        <div className="bg-white/5 rounded-lg p-3 mb-6 text-center">
+          <p className="text-white/80 text-xs">Duração Total do Arquivo</p>
+          <p className="text-white font-bold text-xl">{stats.duration || '00:00'}</p>
         </div>
 
         {/* Botões */}
@@ -151,7 +293,9 @@ PROJECT: Globo Residência - Validação Musical
         {/* Informações adicionais */}
         <div className="mt-6 text-center">
           <p className="text-white/60 text-xs">
-            O arquivo EDL contém todas as informações das músicas validadas
+            {stats.approved > 0 
+              ? `O arquivo EDL contém ${stats.approved} música(s) aprovada(s) com todas as informações detalhadas`
+              : 'Nenhuma música foi aprovada para inclusão no EDL'}
           </p>
         </div>
         </div>

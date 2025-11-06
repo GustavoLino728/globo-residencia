@@ -54,44 +54,68 @@ export default function ValidandoPage() {
   // Carregar os dados do localStorage quando o componente montar
   useEffect(() => {
     try {
-      const uploadResults = localStorage.getItem('uploadResults');
-      if (uploadResults) {
-        const data = JSON.parse(uploadResults);
-        console.log("Dados carregados do localStorage:", data);
+      // Primeiro, verificar se é um ID de upload recente
+      const lastUploadId = localStorage.getItem('lastUploadId');
+      const uploadFileName = localStorage.getItem('uploadFileName');
+      
+      if (id === lastUploadId || id.startsWith('upload-')) {
+        // É um upload recente, usar os dados do localStorage
+        const uploadResults = localStorage.getItem('uploadResults');
         
-        if (data && data.musicas && Array.isArray(data.musicas)) {
-          // Converter os dados do backend para o formato esperado pelo componente
-          const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => ({
-            musica: musica.titulo || `Música ${index + 1}`,
-            efeitoSonoro: "N/A",
-            artista: musica.artista || "Desconhecido",
-            interprete: musica.artista || "Desconhecido",
-            gravadora: "N/A",
-            tempoInicio: formatTime(musica.inicioSegundos) || "00:00",
-            tempoFim: formatTime(musica.fimSegundos) || "00:00",
-            isrc: musica.isrc || "Não informado",
-            tempoTotal: formatTime(musica.fimSegundos - musica.inicioSegundos) || "00:00"
-          }));
+        if (uploadResults) {
+          const data = JSON.parse(uploadResults);
+          console.log("Dados do upload carregados do localStorage:", data);
           
-          setMusicInfo(formattedData);
-          setValidationTitle(`Validação do Arquivo ${data.caminhoCombinado?.split('/').pop() || id}`);
-        } else {
-          // Fallback para os dados de exemplo se não houver dados válidos
-          setMusicInfo(sampleMusicData[id] || []);
+          if (data && data.musicas && Array.isArray(data.musicas)) {
+            // Converter os dados do backend para o formato esperado pelo componente
+            const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => ({
+              musica: musica.titulo || `Música ${index + 1}`,
+              efeitoSonoro: "N/A",
+              artista: musica.artista || "Desconhecido",
+              interprete: musica.artista || "Desconhecido",
+              gravadora: "N/A",
+              tempoInicio: formatTime(musica.inicioSegundos) || "00:00",
+              tempoFim: formatTime(musica.fimSegundos) || "00:00",
+              isrc: musica.isrc || "Não informado",
+              tempoTotal: formatTime(musica.fimSegundos - musica.inicioSegundos) || "00:00"
+            }));
+            
+            setMusicInfo(formattedData);
+            
+            // Definir título baseado no nome do arquivo ou dados
+            if (urlTitle) {
+              setValidationTitle(urlTitle);
+            } else if (uploadFileName) {
+              setValidationTitle(`Validação - ${uploadFileName}`);
+            } else {
+              setValidationTitle(`Validação do Upload`);
+            }
+            
+            setIsLoading(false);
+            return;
+          }
         }
-      } else {
-        // Fallback para os dados de exemplo se não houver dados no localStorage
-        setMusicInfo(sampleMusicData[id] || []);
       }
+      
+      // Se não é um upload recente, tentar carregar dados de exemplo
+      if (sampleMusicData[id]) {
+        console.log("Carregando dados de exemplo para ID:", id);
+        setMusicInfo(sampleMusicData[id]);
+        setValidationTitle(urlTitle || `Validação ${id}`);
+      } else {
+        // Nenhum dado encontrado
+        console.warn("Nenhum dado encontrado para o ID:", id);
+        setMusicInfo([]);
+      }
+      
     } catch (error) {
-      console.error("Erro ao carregar dados do upload:", error);
+      console.error("Erro ao carregar dados:", error);
       setHasError(true);
-      // Fallback para os dados de exemplo em caso de erro
-      setMusicInfo(sampleMusicData[id] || []);
+      setMusicInfo([]);
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, urlTitle]);
   
   // Função auxiliar para formatar segundos em MM:SS
   function formatTime(seconds: number): string {
@@ -146,7 +170,6 @@ export default function ValidandoPage() {
   // Estado de carregamento
   if (isLoading) {
     return (
-<<<<<<< HEAD
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
         <div className="text-center p-8">
           <div className="relative">
@@ -208,6 +231,8 @@ export default function ValidandoPage() {
           onClose={() => setShowEDLModal(false)}
           fileName={validationTitle}
           validationTitle={validationTitle}
+          musicData={currentMusicData}
+          validatedSongs={validatedSongs}
         />
       </div>
     </PageLayout>

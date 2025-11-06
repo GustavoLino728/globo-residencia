@@ -1,9 +1,9 @@
 export interface VideoInfo {
-    id: string;
-    thumbnail: string;
-    title: string;
-    duration: string;
-  }
+  id: string;
+  thumbnail: string;
+  title: string;
+  duration: string;
+}
 
 export const notFinishedVideos: VideoInfo[] = [
     {
@@ -35,10 +35,10 @@ export const notFinishedVideos: VideoInfo[] = [
       thumbnail: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=225&fit=crop",
       title: "Transmissão ao vivo do estúdio",
       duration: "41:05",
-    },
-  ];
+  },
+];
 
-  export const finishedVideos: VideoInfo[] = [
+export const finishedVideos: VideoInfo[] = [
     {
       id: "6",
       thumbnail: "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=225&fit=crop",
@@ -67,6 +67,6 @@ export const notFinishedVideos: VideoInfo[] = [
       id: "10",
       thumbnail: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=225&fit=crop",
       title: "Seminário de estratégia empresarial",
-      duration: "55:12",
-    },
-  ];
+    duration: "55:12",
+  },
+];

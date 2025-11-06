@@ -4,8 +4,8 @@ import VideoCarousel from "@/components/videoCarossel";
 import PageLayout from "@/components/PageLayout";
 import GlassCard from "@/components/GlassCard";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import { notFinishedVideos, finishedVideos } from "@/data/videoMocks";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { notFinishedVideos, finishedVideos, VideoInfo } from "@/data/videoMocks";
 import EDLDownloadModal from "@/components/edlDownloadModal";
 
 const Index = () => {
@@ -14,14 +14,37 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [showClearMessage, setShowClearMessage] = useState(false);
   const [modalData, setModalData] = useState<{ id: string, title: string } | null>(null);
+  const [uploadedVideos, setUploadedVideos] = useState<VideoInfo[]>([]);
 
   useEffect(() => {
     // Recuperar resultados do localStorage
     const results = localStorage.getItem("uploadResults");
+    const uploadId = localStorage.getItem("lastUploadId");
+    const fileName = localStorage.getItem("uploadFileName");
+    
     if (results) {
       try {
         const parsedResults = JSON.parse(results);
         setUploadResults(parsedResults);
+        
+        // Se há um upload recente, adicionar à lista de não finalizados
+        if (uploadId && fileName) {
+          const uploadVideo: VideoInfo = {
+            id: uploadId,
+            thumbnail: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=225&fit=crop",
+            title: fileName,
+            duration: parsedResults.segundosPorSegmento && parsedResults.quantidadeSegmentos
+              ? formatDuration(parsedResults.segundosPorSegmento * parsedResults.quantidadeSegmentos)
+              : "00:00",
+          };
+          
+          // Verificar se já não existe na lista
+          setUploadedVideos(prev => {
+            const exists = prev.some(v => v.id === uploadId);
+            if (exists) return prev;
+            return [uploadVideo, ...prev];
+          });
+        }
       } catch (e) {
         console.error("Erro ao processar resultados do upload:", e);
       }
@@ -29,17 +52,39 @@ const Index = () => {
     setLoading(false);
   }, []);
 
+  // Combinar vídeos não finalizados com uploads recentes
+  const allNotFinishedVideos = useMemo(() => {
+    return [...uploadedVideos, ...notFinishedVideos];
+  }, [uploadedVideos]);
+
+  // Função para formatar duração em MM:SS
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Função para limpar os resultados
   const handleClearResults = () => {
     // Perguntar confirmação ao usuário
     const confirmed = window.confirm("Tem certeza que deseja limpar todos os resultados do último upload?");
     
     if (confirmed) {
+      // Obter o ID do último upload antes de limpar
+      const uploadId = localStorage.getItem("lastUploadId");
+      
       // Remover do localStorage
       localStorage.removeItem("uploadResults");
+      localStorage.removeItem("lastUploadId");
+      localStorage.removeItem("uploadFileName");
       
       // Atualizar o estado para remover da visualização
       setUploadResults(null);
+      
+      // Remover da lista de vídeos não finalizados
+      if (uploadId) {
+        setUploadedVideos(prev => prev.filter(v => v.id !== uploadId));
+      }
       
       // Mostrar mensagem de sucesso
       setShowClearMessage(true);
@@ -141,7 +186,7 @@ const Index = () => {
             <GlassCard>
               <VideoCarousel 
                 title="Não Finalizados" 
-                videos={notFinishedVideos} 
+                videos={allNotFinishedVideos} 
                 onVideoClick={handleVideoClick}
               />
             </GlassCard>
@@ -161,7 +206,9 @@ const Index = () => {
         isOpen={!!modalData}
         onClose={() => setModalData(null)} 
         fileName={modalData?.id || ""} 
-        validationTitle={modalData?.title || ""} 
+        validationTitle={modalData?.title || ""}
+        musicData={[]}
+        validatedSongs={{}}
       />
     </PageLayout>
   );
