@@ -6,6 +6,7 @@ import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Spacer } from "@heroui/spacer";
 import LoadingScreen from "./loadingScreen";
+import Notification from "./notification";
 
 // Removida a função de retry
 
