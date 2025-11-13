@@ -134,13 +134,19 @@ export default function MediaUpload() {
       const data = await response.json();
       console.log("Resposta completa do servidor:", data);
       
-      // Gerar ID único para este upload baseado no timestamp
-      const uploadId = `upload-${Date.now()}`;
+      // Usar o ID do banco de dados se disponível, senão gerar ID local
+      const uploadId = data.arquivo?.id ? `db-${data.arquivo.id}` : `upload-${Date.now()}`;
       
       // Armazenar a resposta no localStorage com ID único
       localStorage.setItem("uploadResults", JSON.stringify(data));
       localStorage.setItem("lastUploadId", uploadId);
       localStorage.setItem("uploadFileName", file.name);
+      
+      // Armazenar ID do banco se disponível
+      if (data.arquivo?.id) {
+        localStorage.setItem("uploadDatabaseId", data.arquivo.id.toString());
+        console.log(`✅ Arquivo salvo no banco com ID: ${data.arquivo.id}`);
+      }
       
       console.log("Processamento do backend concluído!");
       console.log(`Músicas encontradas: ${data.quantidadeMusicasEncontradas || 0}`);

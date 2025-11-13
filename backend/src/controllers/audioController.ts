@@ -5,6 +5,8 @@ import { saveFile } from '../services/fileService';
 import { saveBase64ToFile, convertMxfToWav, splitWav, concatWavs, clearTmp } from '../services/audioService';
 import { identifyAudioByFile, AUDD_CONFIG } from '../services/auddService';
 import { enqueue } from '../services/queueService';
+import { updateArquivoStatus, insertMultiplasMusicasIdentificadas, MusicaIdentificadaData } from '../services/databaseService';
+import { supabase } from '../config/supabase';
 
 export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyReply) {
   const LOG_DIR = path.join(process.cwd(), 'tmp_audio');
@@ -19,8 +21,9 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   };
   appendLog('Received /buscaAudD request');
 
-  // DECLARAR inputPath NO ESCOPO EXTERNO
+  // DECLARAR inputPath E idArquivoBanco NO ESCOPO EXTERNO
   let inputPath: string = '';
+  let idArquivoBanco: number | undefined = undefined;
 
   // Este endpoint aceita multipart/form-data com `file`, raw binary ou JSON base64
   const contentType = (request.headers['content-type'] || '').toString();
@@ -30,10 +33,15 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     if (!file) return reply.status(400).send({ error: 'Nenhum arquivo multipart recebido' });
     appendLog('Saving multipart upload to disk');
     
-    // MUDANÇA AQUI: usar fileInfo e extrair localPath
-    const fileInfo = await saveFile(file);
+    // MUDANÇA AQUI: usar fileInfo e extrair localPath e idArquivoBanco
+    const userId = (request as any).user?.id;
+    const fileInfo = await saveFile(file, userId);
     inputPath = fileInfo.localPath;  // ATRIBUIR À VARIÁVEL EXTERNA
+    idArquivoBanco = fileInfo.idArquivoBanco; // CAPTURAR ID DO BANCO
     appendLog('Saved upload to ' + inputPath);
+    if (idArquivoBanco) {
+      appendLog('Database record ID: ' + idArquivoBanco);
+    }
     
   } else if (contentType.includes('application/octet-stream') || contentType.startsWith('audio/') || contentType.startsWith('video/')) {
     const buf = request.body as Buffer;
@@ -58,6 +66,16 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   }
 
   try {
+    // Atualizar status para "Em Processamento" se houver registro no banco
+    if (idArquivoBanco) {
+      try {
+        await updateArquivoStatus(idArquivoBanco, 'Em Processamento');
+        appendLog('✅ Status atualizado para "Em Processamento" no banco');
+      } catch (err) {
+        appendLog('⚠️ Erro ao atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
+      }
+    }
+
     appendLog('Starting convertMxfToWav for ' + inputPath);
     const wavPath = await convertMxfToWav(inputPath, 'converted.wav');
     appendLog('Converted to wav: ' + wavPath);
@@ -248,8 +266,72 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       configAudd: { params: { retorno: AUDD_CONFIG?.params?.return ?? '' } },
     };
 
+    // Salvar músicas identificadas no banco e atualizar status para "Finalizado"
+    if (idArquivoBanco) {
+      try {
+        // Obter ID do usuário (se disponível)
+        const userId = (request as any).user?.id;
+        let idUsuarioGerador: number | undefined;
+        
+        if (userId) {
+          try {
+            const { data: usuarioData } = await supabase.from('usuario')
+              .select('id_usuario')
+              .eq('auth_id', userId)
+              .single();
+            idUsuarioGerador = usuarioData?.id_usuario;
+          } catch (e) {
+            appendLog('⚠️ Não foi possível obter id_usuario para o gerador');
+          }
+        }
+
+        // Preparar dados das músicas para inserção (seguindo schema do banco)
+        const musicasParaSalvar: MusicaIdentificadaData[] = dedup.map(m => {
+          const meta = m.fonte || {};
+          return {
+            id_arquivo_midia: idArquivoBanco!,
+            titulo: m.titulo,
+            artista: m.artista,
+            album: meta.album || undefined,
+            gravadora: meta.label || meta.gravadora || undefined,
+            efeito_sonoro: false, // Pode ser melhorado com detecção futura
+            genero: meta.genre || undefined,
+            isrc: m.isrc,
+            timestamp_inicio_seg: m.inicioSegundos,
+            timestamp_fim_seg: m.fimSegundos,
+            id_usuario_gerador: idUsuarioGerador
+          };
+        });
+
+        // Inserir todas as músicas de uma vez
+        if (musicasParaSalvar.length > 0) {
+          const resultados = await insertMultiplasMusicasIdentificadas(musicasParaSalvar);
+          appendLog(`✅ ${resultados.length} músicas salvas no catálogo + detecções criadas`);
+        }
+
+        // Atualizar status para "Finalizado" e duração total do arquivo
+        const duracaoTotal = segments.length * SEG_SECONDS;
+        await updateArquivoStatus(idArquivoBanco, 'Finalizado', duracaoTotal);
+        appendLog(`✅ Status atualizado para "Finalizado" no banco. Duração: ${duracaoTotal}s`);
+      } catch (err) {
+        appendLog('⚠️ Erro ao salvar músicas/atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
+      }
+    }
+
     return reply.send(respostaTraduzida);
   } catch (err: any) {
+    appendLog('❌ Erro no processamento: ' + (err?.message || String(err)));
+    
+    // Atualizar status para "Erro" se houver registro no banco
+    if (idArquivoBanco) {
+      try {
+        await updateArquivoStatus(idArquivoBanco, 'Erro');
+        appendLog('✅ Status atualizado para "Erro" no banco');
+      } catch (updateErr) {
+        appendLog('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
+      }
+    }
+    
     return reply.status(500).send({ error: err?.message || String(err) });
   }
 }

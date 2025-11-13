@@ -7,7 +7,7 @@ export async function conditionalAuth(request: FastifyRequest, reply: FastifyRep
   if (skipAuth) {
     console.log('⚠️  Autenticação DESABILITADA (modo desenvolvimento)');
     request.user = {
-      id: 'dev-user-id',
+      id: '8f03973e-3b82-4a3a-9504-caa08e053e2d',
       email: 'dev@localhost',
       name: 'Dev User'
     };

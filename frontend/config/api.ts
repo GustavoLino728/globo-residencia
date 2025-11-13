@@ -18,6 +18,8 @@ export const API_CONFIG = {
     BUSCA_AUDD: '/buscaAudD',
     HEALTH: '/',
     CORS_TEST: '/cors-test',
+    ARQUIVOS: '/arquivos', // GET /arquivos/:status
+    ARQUIVO: '/arquivo', // GET /arquivo/:id
   },
   
   // Timeout padrão para requisições (5 minutos para arquivos grandes)
@@ -64,5 +66,57 @@ export async function checkBackendHealth(): Promise<{ ok: boolean; message: stri
         ? 'Não foi possível conectar ao backend. Verifique se está rodando.' 
         : error.message 
     };
+  }
+}
+
+/**
+ * Busca arquivos por status
+ * @param status - Status do arquivo ('Não Finalizado', 'Em Processamento', 'Finalizado', 'Erro')
+ * @returns Promise com lista de arquivos
+ */
+export async function getArquivosPorStatus(status: string): Promise<any[]> {
+  try {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARQUIVOS}/${encodeURIComponent(status)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: API_CONFIG.CORS.MODE,
+      signal: AbortSignal.timeout(10000),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar arquivos: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.arquivos || [];
+  } catch (error: any) {
+    console.error('Erro ao buscar arquivos:', error);
+    throw error;
+  }
+}
+
+/**
+ * Busca arquivo específico com suas músicas
+ * @param idArquivo - ID do arquivo no banco
+ * @returns Promise com dados do arquivo e músicas
+ */
+export async function getArquivoComMusicas(idArquivo: number): Promise<any> {
+  try {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARQUIVO}/${idArquivo}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: API_CONFIG.CORS.MODE,
+      signal: AbortSignal.timeout(10000),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar arquivo: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Erro ao buscar arquivo:', error);
+    throw error;
   }
 }
