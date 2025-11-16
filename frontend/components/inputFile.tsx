@@ -219,41 +219,54 @@ export default function MediaUpload() {
   return (
     <>
     <Card
-      className="max-w-md mx-auto p-8 rounded-2xl bg-white text-center border-2 border-solid border-[#4B4B53] mt-20 mb-20"
+      className="max-w-md mx-auto p-8 rounded-2xl bg-white/2 text-center border-1 border-solid border-[#4B4B53]/10 mt-20 mb-20"
       onDragOver={(e) => {
+        if (fileName && mediaURL) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(true);
       }}
       onDragLeave={(e) => {
+        if (fileName && mediaURL) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
       }}
-      onDrop={handleDrop}
+      onDrop={fileName && mediaURL ? undefined : handleDrop}
     >
-      <CardBody className="flex flex-col items-center justify-center gap-4">
+      <CardBody className="flex flex-col items-center justify-center gap-4 ">
         {/* Input de arquivo escondido */}
         <input
           id="media-upload"
           type="file"
           accept="audio/*,video/*,.mxf"
           onChange={handleFileChange}
+          disabled={!!(fileName && mediaURL)}
           style={{ display: "none" }}
         />
 
-        <div
-          className="w-full h-30 flex flex-col items-center justify-center cursor-pointer"
-          onClick={() => document.getElementById("media-upload")?.click()}
-        >
-          <h2 className="text-gray-900 text-lg font-semibold mb-1">
-            Arraste e solte o arquivo aqui
-          </h2>
-          <p className="text-gray-600 text-sm">
-            ou clique aqui para selecionar um arquivo
-          </p>
-          
-        </div>
+        {!fileName && !mediaURL && (
+          <div
+            className="w-full h-30 flex flex-col items-center justify-center cursor-pointer"
+            onClick={() => document.getElementById("media-upload")?.click()}
+          >
+            <h2 className="text-white-900 text-lg font-semibold mb-1">
+              Arraste e solte o arquivo aqui
+            </h2>
+            <p className="text-white-600 text-sm">
+              ou clique aqui para selecionar um arquivo
+            </p>
+            
+          </div>
+        )}
         <div className="transition-all duration-500 ease-in-out transform flex justify-center">
 
         </div>
@@ -266,7 +279,7 @@ export default function MediaUpload() {
         }`}>
           <div className="w-full">
             <div className="mb-4">
-              <p className="text-black text-sm mb-2">Arquivo selecionado: {fileName}</p>
+              <p className="text-white text-sm mb-2">Arquivo selecionado: {fileName}</p>
               {fileType?.startsWith("audio/") ? (
                 <audio 
                   controls 
