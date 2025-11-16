@@ -10,17 +10,6 @@ export default function HomeHeader() {
         />
       </div>
 
-      <nav className="hidden flex justify-around md:flex space-x-12 w-full">
-        <Link href="#" className="text-white hover:text-gray-400 text-lg">
-          COMO FUNCIONA?
-        </Link>
-        <Link href="#" className="text-white hover:text-gray-400 text-lg">
-          SOBRE NÓS
-        </Link>
-        <Link href="#" className="text-white hover:text-gray-400 text-lg">
-          CONTATO
-        </Link>
-      </nav>
     </header>
   );
 }
