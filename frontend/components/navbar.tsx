@@ -33,7 +33,9 @@ export const Navbar = () => {
         <Link color="foreground" href="/" className="gap-2">
           <ContagiaLogo />
           
-          <p className="font-bold text-inherit">Contag<span className="text-[#6f1fc6] font-black">IA</span></p>
+          <p className="font-bold text-inherit">Contag<span className="font-extrabold 
+         bg-gradient-to-r from-purple-600 to-indigo-600 
+         bg-clip-text text-transparent">IA</span></p>
         </Link>
       </NavbarBrand>
 
@@ -68,30 +70,6 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarContent as="div" justify="end">
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name="Jason Hughes"
-              size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Profile Actions" variant="flat">
-            <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Logado como</p>
-              <p className="font-semibold">zoey@example.com</p>
-            </DropdownItem>
-            <DropdownItem key="team_settings">Configurações da Equipe</DropdownItem>
-            <DropdownItem key="analytics">Dashboard</DropdownItem>
-            <DropdownItem key="logout" color="danger">
-              Sair
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
       </NavbarContent>
     </HeroUINavbar>
   );
