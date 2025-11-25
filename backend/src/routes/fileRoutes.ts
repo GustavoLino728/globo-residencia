@@ -3,6 +3,7 @@ import { saveFile } from '../services/fileService';
 import audioController from '../controllers/audioController';
 import { conditionalAuth } from '../middleware/conditionalAuth';
 import { uploadSchema, buscaAudDSchema } from '../schemas/fileSchemas';
+import { supabase } from '../config/supabase';
 
 async function fileRoutes(fastify: FastifyInstance) {
   
@@ -96,6 +97,35 @@ async function fileRoutes(fastify: FastifyInstance) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       return reply.status(500).send({ 
         error: 'Erro ao buscar arquivo',
+        details: errorMessage
+      });
+    }
+  });
+
+  // Buscar todas as músicas do banco (apenas tabela musica, sem JOIN)
+  fastify.get('/musicas', {
+    preHandler: conditionalAuth
+  }, async (request, reply) => {
+    try {
+      // SELECT * FROM musica (simples, sem verificação de detecções)
+      const { data: musicas, error } = await supabase
+        .from('musica')
+        .select('*')
+        .order('criado_em', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro Supabase ao buscar músicas:', error);
+        throw new Error(`Erro ao buscar músicas: ${error.message}`);
+      }
+
+      console.log(`✅ Músicas encontradas no banco: ${musicas?.length || 0}`);
+      
+      return { musicas: musicas || [] };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('❌ Erro no endpoint /musicas:', errorMessage);
+      return reply.status(500).send({ 
+        error: 'Erro ao buscar músicas',
         details: errorMessage
       });
     }

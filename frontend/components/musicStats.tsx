@@ -142,6 +142,8 @@ const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
 
 // Função auxiliar para converter tempo para segundos
 function parseTimeToSeconds(timeString: string): number {
+  if (!timeString) return 0;
+  
   const parts = timeString.split(':');
   if (parts.length === 2) {
     return parseInt(parts[0]) * 60 + parseInt(parts[1]);

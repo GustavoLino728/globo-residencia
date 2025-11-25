@@ -5,7 +5,7 @@ import PageLayout from "@/components/PageLayout";
 import GlassCard from "@/components/GlassCard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { notFinishedVideos, finishedVideos, VideoInfo } from "@/data/videoMocks";
+import { VideoInfo } from "@/data/videoMocks";
 import EDLDownloadModal from "@/components/edlDownloadModal";
 import { getArquivosPorStatus } from "@/config/api";
 
@@ -94,14 +94,14 @@ const Index = () => {
     loadData();
   }, []);
 
-  // Combinar vídeos não finalizados: banco + localStorage + mocks
+  // Apenas vídeos do banco de dados (sem mocks)
   const allNotFinishedVideos = useMemo(() => {
-    return [...dbVideosNaoFinalizados, ...uploadedVideos, ...notFinishedVideos];
+    return [...dbVideosNaoFinalizados, ...uploadedVideos];
   }, [dbVideosNaoFinalizados, uploadedVideos]);
 
-  // Combinar vídeos finalizados: banco + mocks
+  // Apenas vídeos finalizados do banco (sem mocks)
   const allFinishedVideos = useMemo(() => {
-    return [...dbVideosFinalizados, ...finishedVideos];
+    return dbVideosFinalizados;
   }, [dbVideosFinalizados]);
 
   // Função para limpar os resultados
@@ -147,48 +147,7 @@ const Index = () => {
     setModalData({ id, title });
   }, []);
 
-  // Função para renderizar os resultados do upload
-  const renderUploadResults = () => {
-    if (!uploadResults) return null;
-
-    return (
-      <div>
-        <h2 className="text-2xl font-bold mb-4 text-white">Resultados do Último Upload</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white/5 rounded-xl p-4">
-            <h3 className="text-xl font-semibold mb-2 text-white">Informações Gerais</h3>
-            <p><span className="font-semibold">Quantidade de Segmentos:</span> {uploadResults.quantidadeSegmentos}</p>
-            <p><span className="font-semibold">Segundos por Segmento:</span> {uploadResults.segundosPorSegmento}</p>
-            <p><span className="font-semibold">Músicas Encontradas:</span> {uploadResults.quantidadeMusicasEncontradas || 'N/A'}</p>
-          </div>
-          
-          {uploadResults.musicas && uploadResults.musicas.length > 0 && (
-            <div className="bg-white/5 rounded-xl p-4">
-              <h3 className="text-xl font-semibold mb-2 text-white">Músicas Identificadas</h3>
-              <div className="max-h-80 overflow-y-auto pr-2">
-                {uploadResults.musicas.map((musica: any, index: number) => (
-                  <div key={index} className="mb-3 p-3 bg-white/10 rounded-lg">
-                    <p><span className="font-semibold">Título:</span> {musica.titulo || 'Desconhecido'}</p>
-                    <p><span className="font-semibold">Artista:</span> {musica.artista || 'Desconhecido'}</p>
-                    <p><span className="font-semibold">Tempo:</span> {formatTime(musica.inicioSegundos)} - {formatTime(musica.fimSegundos)}</p>
-                    {musica.isrc && <p><span className="font-semibold">ISRC:</span> {musica.isrc}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <button 
-          onClick={handleClearResults}
-          className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors font-semibold shadow-lg hover:shadow-xl"
-        >
-          Limpar Resultados
-        </button>
-      </div>
-    );
-  };
+  // Remover a renderização de músicas do localStorage - agora vem apenas do banco
 
   // Função para formatar segundos em formato de tempo (MM:SS)
   const formatTime = (seconds: number) => {
@@ -212,23 +171,23 @@ const Index = () => {
 
       <div className="max-w-7xl mx-auto space-y-8">
         {loading ? (
-          <div className="flex justify-center items-center h-32">
+          <div className="flex flex-col justify-center items-center h-32 space-y-4">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
+            <p className="text-white/70">Carregando relatórios do banco...</p>
           </div>
         ) : (
           <>
-            {uploadResults && (
-              <GlassCard>
-                {renderUploadResults()}
-              </GlassCard>
-            )}
-            
             <GlassCard>
               <VideoCarousel 
                 title="Não Finalizados" 
                 videos={allNotFinishedVideos} 
                 onVideoClick={handleVideoClick}
               />
+              {allNotFinishedVideos.length === 0 && (
+                <div className="text-center py-8 text-white/70">
+                  📁 Nenhum arquivo não finalizado. Faça upload de um arquivo para começar.
+                </div>
+              )}
             </GlassCard>
             
             <GlassCard>
@@ -237,6 +196,11 @@ const Index = () => {
                 videos={allFinishedVideos} 
                 onVideoClick={handleFinishedVideoClick}
               />
+              {allFinishedVideos.length === 0 && (
+                <div className="text-center py-8 text-white/70">
+                  ✅ Nenhum arquivo finalizado ainda.
+                </div>
+              )}
             </GlassCard>
           </>
         )}
