@@ -142,6 +142,17 @@ export default function MediaUpload() {
       localStorage.setItem("lastUploadId", uploadId);
       localStorage.setItem("uploadFileName", file.name);
       
+      // Armazenar URL do vídeo/áudio para uso na validação
+      if (mediaURL) {
+        localStorage.setItem("uploadMediaURL", mediaURL);
+        localStorage.setItem("uploadFileType", fileType || file.type || '');
+      }
+      
+      // Armazenar URL do Supabase se disponível
+      if (data.supabase?.url) {
+        localStorage.setItem("uploadSupabaseURL", data.supabase.url);
+      }
+      
       // Armazenar ID do banco se disponível
       if (data.arquivo?.id) {
         localStorage.setItem("uploadDatabaseId", data.arquivo.id.toString());
@@ -201,9 +212,13 @@ export default function MediaUpload() {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
-      // limpa o input de arquivo
+      // Limpa o input de arquivo
       const input = document.getElementById("media-upload") as HTMLInputElement;
       if (input) input.value = "";
+      // Limpa dados do localStorage relacionados ao upload
+      localStorage.removeItem("uploadMediaURL");
+      localStorage.removeItem("uploadFileType");
+      localStorage.removeItem("uploadSupabaseURL");
     }, 500); // Tempo suficiente para a animação ocorrer
   };
 
@@ -290,19 +305,21 @@ export default function MediaUpload() {
                   Seu navegador não suporta o elemento de áudio.
                 </audio>
               ) : (
-                <video 
-                  controls 
-                  className="w-full max-h-64"
-                  src={mediaURL || undefined}
-                  ref={mediaElementRef as React.RefObject<HTMLVideoElement>}
-                >
-                  Seu navegador não suporta o elemento de vídeo.
+                <div className="w-full rounded-lg overflow-hidden bg-black/20 border border-white/10">
+                  <video 
+                    controls 
+                    className="w-full max-h-96 object-contain"
+                    src={mediaURL || undefined}
+                    ref={mediaElementRef as React.RefObject<HTMLVideoElement>}
+                  >
+                    Seu navegador não suporta o elemento de vídeo.
+                  </video>
                   {fileName?.toLowerCase().endsWith('.mxf') && (
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1 p-2 text-center">
                       Arquivo MXF detectado. Alguns navegadores podem não reproduzir este formato.
                     </p>
                   )}
-                </video>
+                </div>
               )}
             </div>
             <div className="flex justify-between">

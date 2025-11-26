@@ -8,6 +8,7 @@ import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
 import ValidationPanel from "@/components/validationPainel"
 import ErrorState from "@/components/errorState";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
+import MusicPlayer from "@/components/musicPlayer";
 import { Button } from "@heroui/button";
 import { useSearchParams } from 'next/navigation';
 import PageLayout from "@/components/PageLayout"
@@ -209,19 +210,32 @@ export default function ValidandoPage() {
 
             <VideoPlayer/>
 
-            <ValidationPanel
-            isNewFile={isNewFile}
-            isNewFileId={isNewFileId}
-            currentMusicData={currentMusicData}
-            currentIndex={currentIndex}
-            validatedSongs={validatedSongs}
-            allSongsValidated={allSongsValidated}
-            handlePrevious={handlePrevious}
-            handleNext={handleNext}
-            handleApprove={handleApprove}
-            handleReject={handleReject}
-            onGenerateEdl={handleGenerateEdl} 
-            />
+            <div className="lg:col-span-1 space-y-6">
+              <ValidationPanel
+              isNewFile={isNewFile}
+              isNewFileId={isNewFileId}
+              currentMusicData={currentMusicData}
+              currentIndex={currentIndex}
+              validatedSongs={validatedSongs}
+              allSongsValidated={allSongsValidated}
+              handlePrevious={handlePrevious}
+              handleNext={handleNext}
+              handleApprove={handleApprove}
+              handleReject={handleReject}
+              onGenerateEdl={handleGenerateEdl} 
+              />
+
+              {/* Player de Música */}
+              {currentMusicData && currentMusicData.length > 0 && currentMusicData[currentIndex] && (
+                <MusicPlayer
+                  key={`${currentIndex}-${currentMusicData[currentIndex].musica}`}
+                  tempoInicio={currentMusicData[currentIndex].tempoInicio}
+                  tempoFim={currentMusicData[currentIndex].tempoFim}
+                  musica={currentMusicData[currentIndex].musica}
+                  artista={currentMusicData[currentIndex].artista}
+                />
+              )}
+            </div>
           </div>
 
         </main>
