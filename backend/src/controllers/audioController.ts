@@ -1,68 +1,36 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import * as fs from 'fs';
-import * as path from 'path';
 import { saveFile } from '../services/fileService';
-import { saveBase64ToFile, convertMxfToWav, splitWav, concatWavs, clearTmp } from '../services/audioService';
+import { bufferToTempFile, convertMxfToWav, splitWav, concatWavs, clearTmp } from '../services/audioService';
 import { identifyAudioByFile, AUDD_CONFIG } from '../services/auddService';
 import { enqueue } from '../services/queueService';
 import { updateArquivoStatus, insertMultiplasMusicasIdentificadas, MusicaIdentificadaData } from '../services/databaseService';
-import { supabase } from '../config/supabase';
 
 export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyReply) {
-  const LOG_DIR = path.join(process.cwd(), 'tmp_audio');
-  const LOG_FILE = path.join(LOG_DIR, 'process.log');
-  const appendLog = (m: string) => {
-    try {
-      if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
-      fs.appendFileSync(LOG_FILE, `[${new Date().toISOString()}] ${m}\n`);
-    } catch (e) {
-      // ignore
-    }
-  };
-  appendLog('Received /buscaAudD request');
+  console.log('📥 Requisição recebida em /buscaAudD');
 
-  // DECLARAR inputPath E idArquivoBanco NO ESCOPO EXTERNO
   let inputPath: string = '';
   let idArquivoBanco: number | undefined = undefined;
 
-  // Este endpoint aceita multipart/form-data com `file`, raw binary ou JSON base64
   const contentType = (request.headers['content-type'] || '').toString();
   
   if (contentType.includes('multipart/form-data')) {
     const file = await (request as any).file();
     if (!file) return reply.status(400).send({ error: 'Nenhum arquivo multipart recebido' });
-    appendLog('Saving multipart upload to disk');
     
-    // MUDANÇA AQUI: usar fileInfo e extrair localPath e idArquivoBanco
-    const userId = (request as any).user?.id;
-    const fileInfo = await saveFile(file, userId);
-    inputPath = fileInfo.localPath;  // ATRIBUIR À VARIÁVEL EXTERNA
-    idArquivoBanco = fileInfo.idArquivoBanco; // CAPTURAR ID DO BANCO
-    appendLog('Saved upload to ' + inputPath);
+    console.log('📤 Fazendo upload para Supabase Storage...');
+    const fileInfo = await saveFile(file);
+    
+    // Salvar buffer em arquivo temporário para processamento
+    inputPath = await bufferToTempFile(fileInfo.fileBuffer, fileInfo.fileName);
+    idArquivoBanco = fileInfo.idArquivoBanco;
+    
+    console.log('✅ Arquivo preparado para processamento');
     if (idArquivoBanco) {
-      appendLog('Database record ID: ' + idArquivoBanco);
+      console.log(`📋 ID do banco: ${idArquivoBanco}`);
     }
-    
-  } else if (contentType.includes('application/octet-stream') || contentType.startsWith('audio/') || contentType.startsWith('video/')) {
-    const buf = request.body as Buffer;
-    if (!buf || !Buffer.isBuffer(buf) || buf.length === 0) {
-      return reply.status(400).send({ error: 'Empty binary body' });
-    }
-    appendLog('Saving raw binary body to disk');
-    const filename = `upload-${Date.now()}.mxf`;
-    const filePath = path.join(process.cwd(), 'uploads', filename);
-    fs.writeFileSync(filePath, buf);
-    inputPath = filePath;  // ATRIBUIR À VARIÁVEL EXTERNA
-    appendLog('Saved raw upload to ' + inputPath);
     
   } else {
-    const body = request.body as any;
-    if (!body || !body.data) {
-      return reply.status(400).send({ error: 'Missing data (base64) in body' });
-    }
-    appendLog('Saving base64 upload to disk');
-    inputPath = await saveBase64ToFile(body.data, body.filename || 'input.mxf');  // ATRIBUIR À VARIÁVEL EXTERNA
-    appendLog('Saved base64 upload to ' + inputPath);
+    return reply.status(400).send({ error: 'Content-Type não suportado. Use multipart/form-data' });
   }
 
   try {
@@ -70,33 +38,33 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Em Processamento');
-        appendLog('✅ Status atualizado para "Em Processamento" no banco');
+        console.log('✅ Status atualizado para "Em Processamento" no banco');
       } catch (err) {
-        appendLog('⚠️ Erro ao atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
+        console.log('⚠️ Erro ao atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
 
-    appendLog('Starting convertMxfToWav for ' + inputPath);
+    console.log('Starting convertMxfToWav for ' + inputPath);
     const wavPath = await convertMxfToWav(inputPath, 'converted.wav');
-    appendLog('Converted to wav: ' + wavPath);
+    console.log('Converted to wav: ' + wavPath);
 
     const SEG_SECONDS = 20;
-    appendLog(`Starting splitWav for ${wavPath} with segmentSeconds=${SEG_SECONDS}`);
+    console.log(`Starting splitWav for ${wavPath} with segmentSeconds=${SEG_SECONDS}`);
     const segments = await splitWav(wavPath, SEG_SECONDS);
-    appendLog('Split into ' + segments.length + ' segments');
+    console.log('Split into ' + segments.length + ' segments');
 
     const results: Array<{ segment: string; index: number; auddResponse: any }> = [];
     for (let i = 0; i < segments.length; i++) {
       const seg = segments[i];
-      appendLog('Enqueuing audd identify for segment ' + seg);
+      console.log('Enqueuing audd identify for segment ' + seg);
       const promise = enqueue(async () => {
         try {
-          appendLog('Calling audd for ' + seg);
+          console.log('Calling audd for ' + seg);
           const res = await identifyAudioByFile(seg);
-          appendLog('Audd returned for ' + seg);
+          console.log('Audd returned for ' + seg);
           return res;
         } catch (err: any) {
-          appendLog('Audd error for ' + seg + ': ' + (err && err.message ? err.message : String(err)));
+          console.log('Audd error for ' + seg + ': ' + (err && err.message ? err.message : String(err)));
           return { status: 'error', error: { message: err && err.message ? err.message : String(err) } };
         }
       });
@@ -104,9 +72,9 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       results.push({ segment: seg, index: i, auddResponse: auddRes });
     }
 
-    appendLog('Starting concatWavs');
+    console.log('Starting concatWavs');
     const combined = await concatWavs(segments, 'combined.wav');
-    appendLog('Concat finished: ' + combined);
+    console.log('Concat finished: ' + combined);
 
     // construir cronograma
     const found: Array<any> = [];
@@ -182,13 +150,24 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
 
     function extractIsrc(meta: any): string | undefined {
       if (!meta) return undefined;
-      return (
-        meta.isrc || meta.ISRC ||
+      
+      // Tentar múltiplas fontes de ISRC
+      const possibleIsrc = 
+        meta.isrc || meta.ISRC || meta.external_ids?.isrc ||
+        (meta.spotify && (meta.spotify.isrc || meta.spotify.external_ids?.isrc)) ||
         (meta.deezer && meta.deezer.isrc) ||
         (meta.deezer && meta.deezer.data && meta.deezer.data[0] && meta.deezer.data[0].isrc) ||
+        (meta.apple_music && meta.apple_music.isrc) ||
         (meta.result && meta.result.isrc) ||
-        undefined
-      );
+        undefined;
+      
+      // Validar formato ISRC (exemplo: USUM71703861)
+      if (possibleIsrc && typeof possibleIsrc === 'string' && possibleIsrc.length >= 12) {
+        console.log(`✅ ISRC encontrado: ${possibleIsrc}`);
+        return possibleIsrc;
+      }
+      
+      return undefined;
     }
 
     function extractMusicLink(meta: any): string | undefined {
@@ -269,26 +248,10 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     // Salvar músicas identificadas no banco e atualizar status para "Finalizado"
     if (idArquivoBanco) {
       try {
-        // Obter ID do usuário (se disponível)
-        const userId = (request as any).user?.id;
-        let idUsuarioGerador: number | undefined;
-        
-        if (userId) {
-          try {
-            const { data: usuarioData } = await supabase.from('usuario')
-              .select('id_usuario')
-              .eq('auth_id', userId)
-              .single();
-            idUsuarioGerador = usuarioData?.id_usuario;
-          } catch (e) {
-            appendLog('⚠️ Não foi possível obter id_usuario para o gerador');
-          }
-        }
-
         // Preparar dados das músicas para inserção (seguindo schema do banco)
-        const musicasParaSalvar: MusicaIdentificadaData[] = dedup.map(m => {
+        const musicasParaSalvar: MusicaIdentificadaData[] = dedup.map((m, index) => {
           const meta = m.fonte || {};
-          return {
+          const musicaData = {
             id_arquivo_midia: idArquivoBanco!,
             titulo: m.titulo,
             artista: m.artista,
@@ -298,37 +261,43 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
             genero: meta.genre || undefined,
             isrc: m.isrc,
             timestamp_inicio_seg: m.inicioSegundos,
-            timestamp_fim_seg: m.fimSegundos,
-            id_usuario_gerador: idUsuarioGerador
+            timestamp_fim_seg: m.fimSegundos
           };
+          
+          console.log(`🎵 Música ${index + 1}: "${musicaData.titulo}" - ${musicaData.artista} | ISRC: ${musicaData.isrc || 'N/A'}`);
+          return musicaData;
         });
 
-        // Inserir todas as músicas de uma vez
+        const duracaoTotal = segments.length * SEG_SECONDS;
+
+        // Inserir todas as músicas de uma vez (se houver)
         if (musicasParaSalvar.length > 0) {
           const resultados = await insertMultiplasMusicasIdentificadas(musicasParaSalvar);
-          appendLog(`✅ ${resultados.length} músicas salvas no catálogo + detecções criadas`);
+          console.log(`✅ ${resultados.length} músicas salvas no catálogo + detecções criadas`);
+          console.log(`⏳ Aguardando validação do usuário. Status: "Não Finalizado"`);
+        } else {
+          console.log(`⚠️ Nenhuma música encontrada.`);
         }
 
-        // Atualizar status para "Finalizado" e duração total do arquivo
-        const duracaoTotal = segments.length * SEG_SECONDS;
-        await updateArquivoStatus(idArquivoBanco, 'Finalizado', duracaoTotal);
-        appendLog(`✅ Status atualizado para "Finalizado" no banco. Duração: ${duracaoTotal}s`);
+        // Manter status como "Não Finalizado" até validação do usuário
+        await updateArquivoStatus(idArquivoBanco, 'Não Finalizado', duracaoTotal);
+        console.log(`📋 Status: "Não Finalizado" - Aguardando validação do usuário. Duração: ${duracaoTotal}s`);
       } catch (err) {
-        appendLog('⚠️ Erro ao salvar músicas/atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
+        console.log('⚠️ Erro ao salvar músicas/atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
 
     return reply.send(respostaTraduzida);
   } catch (err: any) {
-    appendLog('❌ Erro no processamento: ' + (err?.message || String(err)));
+    console.log('❌ Erro no processamento: ' + (err?.message || String(err)));
     
     // Atualizar status para "Erro" se houver registro no banco
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Erro');
-        appendLog('✅ Status atualizado para "Erro" no banco');
+        console.log('✅ Status atualizado para "Erro" no banco');
       } catch (updateErr) {
-        appendLog('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
+        console.log('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
       }
     }
     

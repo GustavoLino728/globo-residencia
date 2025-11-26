@@ -39,53 +39,59 @@ const Index = () => {
       setLoading(true);
       
       try {
-        // Buscar arquivos do banco
-        const [naoFinalizados, finalizados] = await Promise.all([
-          getArquivosPorStatus('Não Finalizado'),
-          getArquivosPorStatus('Finalizado')
-        ]);
+        // Buscar TODOS os arquivos do banco
+        const response = await fetch('http://127.0.0.1:8000/arquivos', {
+          method: 'GET',
+          mode: 'cors',
+        });
 
-        // Converter para VideoInfo
-        setDbVideosNaoFinalizados(naoFinalizados.map(arquivoToVideoInfo));
-        setDbVideosFinalizados(finalizados.map(arquivoToVideoInfo));
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar arquivos: ${response.status}`);
+        }
 
-        console.log(`✅ Carregados ${naoFinalizados.length} arquivos não finalizados e ${finalizados.length} finalizados do banco`);
+        const data = await response.json();
+        const todosArquivos = data.arquivos || [];
+
+        console.log(`✅ Total de arquivos carregados do banco: ${todosArquivos.length}`);
+        
+        // Criar Set de IDs para deduplicação
+        const idsNoBanco = new Set(todosArquivos.map((arq: any) => arq.id_arquivo));
+
+        // Separar por status (EXCLUSIVAMENTE baseado no status do banco)
+        const naoFinalizados = todosArquivos.filter((arq: any) => 
+          arq.status === 'Não Finalizado' || arq.status === 'Em Processamento' || arq.status === 'Erro'
+        );
+        const finalizados = todosArquivos.filter((arq: any) => 
+          arq.status === 'Finalizado'
+        );
+
+        // Converter para VideoInfo (sem duplicatas)
+        const videosNaoFinalizados = naoFinalizados.map(arquivoToVideoInfo);
+        const videosFinalizados = finalizados.map(arquivoToVideoInfo);
+
+        setDbVideosNaoFinalizados(videosNaoFinalizados);
+        setDbVideosFinalizados(videosFinalizados);
+
+        console.log(`📊 Status dos arquivos:`);
+        todosArquivos.forEach((arq: any) => {
+          console.log(`  - ${arq.nome_original_arquivo}: ${arq.status}`);
+        });
+        console.log(`📊 Não finalizados: ${naoFinalizados.length}, Finalizados: ${finalizados.length}`);
+
+        // Limpar localStorage se o arquivo já está no banco
+        const lastUploadId = localStorage.getItem("lastUploadId");
+        if (lastUploadId) {
+          // Extrair ID numérico do lastUploadId se for do tipo "upload-123"
+          const numericId = parseInt(lastUploadId.replace('upload-', ''), 10);
+          if (!isNaN(numericId) && idsNoBanco.has(numericId)) {
+            console.log(`🧹 Limpando localStorage - arquivo já está no banco (ID: ${numericId})`);
+            localStorage.removeItem("uploadResults");
+            localStorage.removeItem("lastUploadId");
+            localStorage.removeItem("uploadFileName");
+          }
+        }
       } catch (error) {
         console.error('❌ Erro ao buscar arquivos do banco:', error);
-        // Em caso de erro, usar dados de fallback
-      }
-
-      // Recuperar resultados do localStorage (fallback para uploads locais)
-      const results = localStorage.getItem("uploadResults");
-      const uploadId = localStorage.getItem("lastUploadId");
-      const fileName = localStorage.getItem("uploadFileName");
-      
-      if (results) {
-        try {
-          const parsedResults = JSON.parse(results);
-          setUploadResults(parsedResults);
-          
-          // Se há um upload recente, adicionar à lista de não finalizados (se não veio do banco)
-          if (uploadId && fileName && !uploadId.startsWith('db-')) {
-            const uploadVideo: VideoInfo = {
-              id: uploadId,
-              thumbnail: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=225&fit=crop",
-              title: fileName,
-              duration: parsedResults.segundosPorSegmento && parsedResults.quantidadeSegmentos
-                ? formatDuration(parsedResults.segundosPorSegmento * parsedResults.quantidadeSegmentos)
-                : "00:00",
-            };
-            
-            // Verificar se já não existe na lista
-            setUploadedVideos(prev => {
-              const exists = prev.some(v => v.id === uploadId);
-              if (exists) return prev;
-              return [uploadVideo, ...prev];
-            });
-          }
-        } catch (e) {
-          console.error("Erro ao processar resultados do upload:", e);
-        }
       }
       
       setLoading(false);
@@ -94,14 +100,28 @@ const Index = () => {
     loadData();
   }, []);
 
-  // Apenas vídeos do banco de dados (sem mocks)
+  // APENAS vídeos do banco de dados (sem duplicatas, sem localStorage)
   const allNotFinishedVideos = useMemo(() => {
-    return [...dbVideosNaoFinalizados, ...uploadedVideos];
-  }, [dbVideosNaoFinalizados, uploadedVideos]);
+    // Remover duplicatas por ID usando Map
+    const uniqueVideos = new Map<string, VideoInfo>();
+    
+    dbVideosNaoFinalizados.forEach(video => {
+      uniqueVideos.set(video.id, video);
+    });
+    
+    return Array.from(uniqueVideos.values());
+  }, [dbVideosNaoFinalizados]);
 
-  // Apenas vídeos finalizados do banco (sem mocks)
+  // APENAS vídeos finalizados do banco (sem duplicatas)
   const allFinishedVideos = useMemo(() => {
-    return dbVideosFinalizados;
+    // Remover duplicatas por ID usando Map
+    const uniqueVideos = new Map<string, VideoInfo>();
+    
+    dbVideosFinalizados.forEach(video => {
+      uniqueVideos.set(video.id, video);
+    });
+    
+    return Array.from(uniqueVideos.values());
   }, [dbVideosFinalizados]);
 
   // Função para limpar os resultados
@@ -198,7 +218,7 @@ const Index = () => {
               />
               {allFinishedVideos.length === 0 && (
                 <div className="text-center py-8 text-white/70">
-                  ✅ Nenhum arquivo finalizado ainda.
+                  Nenhum arquivo finalizado ainda.
                 </div>
               )}
             </GlassCard>
