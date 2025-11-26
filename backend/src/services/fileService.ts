@@ -1,20 +1,12 @@
 import { MultipartFile } from '@fastify/multipart';
 import { supabase, BUCKET_NAME } from '../config/supabase';
 import { insertArquivoMidia } from './databaseService';
-import * as fs from 'fs';
 import * as path from 'path';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR);
-}
-
 export async function saveFile(
-  file: MultipartFile,
-  userId?: string
+  file: MultipartFile
 ): Promise<{
-  localPath: string;
+  fileBuffer: Buffer;
   supabasePath: string;
   supabaseUrl: string;
   fileName: string;
@@ -26,17 +18,22 @@ export async function saveFile(
   const timestamp = Date.now();
   const uniqueFileName = `${timestamp}-${fileName}`;
 
+  // Ler arquivo diretamente para buffer (sem salvar localmente)
   const chunks: Buffer[] = [];
-  
   for await (const chunk of file.file) {
     chunks.push(chunk);
   }
   const fileBuffer = Buffer.concat(chunks);
   const fileSize = fileBuffer.length;
+  const fileSizeMB = fileSize / (1024 * 1024);
 
-  const localFilePath = path.join(UPLOAD_DIR, fileName);
-  fs.writeFileSync(localFilePath, fileBuffer);
-  console.log('✅ Arquivo salvo localmente:', localFilePath);
+  console.log(`📦 Arquivo recebido: ${fileName} (${fileSizeMB.toFixed(2)} MB)`);
+
+  // Limite de 500MB para Supabase Storage
+  const MAX_SIZE_MB = 500;
+  if (fileSizeMB > MAX_SIZE_MB) {
+    throw new Error(`Arquivo muito grande (${fileSizeMB.toFixed(2)} MB). Limite: ${MAX_SIZE_MB} MB`);
+  }
 
   const fileExtension = path.extname(fileName).toLowerCase().replace('.', '');
 
@@ -52,43 +49,33 @@ export async function saveFile(
       });
 
     if (error) {
-      console.error('⚠️ Erro ao fazer upload no Supabase:', error);
-      return {
-        localPath: localFilePath,
-        supabasePath: '',
-        supabaseUrl: '',
-        fileName: fileName,
-        fileSize: fileSize,
-        format: fileExtension
-      };
+      console.error('⚠️ Erro ao fazer upload no Supabase Storage:', error);
+      throw new Error(`Falha ao fazer upload: ${error.message}`);
     }
 
     const { data: urlData } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(supabasePath);
 
-    console.log('✅ Arquivo salvo no Supabase:', supabasePath);
+    console.log('✅ Arquivo salvo no Supabase Storage:', supabasePath);
 
     let idArquivoBanco: number | undefined;
 
-    if (userId) {
-      try {
-        idArquivoBanco = await insertArquivoMidia({
-          auth_id: userId,
-          nome_original_arquivo: fileName,
-          caminho_storage: supabasePath,
-          tamanho_bytes: fileSize,
-          formato: fileExtension
-        });
+    try {
+      idArquivoBanco = await insertArquivoMidia({
+        nome_original_arquivo: fileName,
+        caminho_storage: supabasePath,
+        tamanho_bytes: fileSize,
+        formato: fileExtension
+      });
 
-        console.log('✅ Registro criado no banco:', idArquivoBanco);
-      } catch (dbError) {
-        console.error('⚠️ Erro ao inserir no banco:', dbError);
-      }
+      console.log('✅ Registro criado no banco:', idArquivoBanco);
+    } catch (dbError) {
+      console.error('⚠️ Erro ao inserir no banco:', dbError);
     }
 
     return {
-      localPath: localFilePath,
+      fileBuffer,
       supabasePath: data.path,
       supabaseUrl: urlData.publicUrl,
       fileName: fileName,
@@ -98,14 +85,7 @@ export async function saveFile(
     };
 
   } catch (error) {
-    console.error('⚠️ Erro no upload para Supabase:', error);
-    return {
-      localPath: localFilePath,
-      supabasePath: '',
-      supabaseUrl: '',
-      fileName: fileName,
-      fileSize: fileSize,
-      format: fileExtension
-    };
+    console.error('⚠️ Erro no processo de upload:', error);
+    throw error;
   }
 }

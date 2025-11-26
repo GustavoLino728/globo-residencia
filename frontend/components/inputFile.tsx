@@ -23,7 +23,22 @@ export default function MediaUpload() {
 
   const handleFile = (file: File) => {
     setIsRemoving(false); // Reset removal state when adding a new file
-    if (file && (file.type.startsWith("audio/") || file.type.startsWith("video/") || file.name.toLowerCase().endsWith('.mxf'))) {
+    
+    // Verificar tamanho do arquivo (limite: 500MB)
+    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB em bytes
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`❌ Arquivo muito grande!\n\nTamanho: ${(file.size / (1024 * 1024)).toFixed(2)} MB\nLimite: 500 MB\n\nPor favor, escolha um arquivo menor ou comprima o vídeo.`);
+      return;
+    }
+    
+    // Aceitar arquivos de áudio, vídeo, ou extensões específicas (.mxf, .mp4, .mov, .avi, etc)
+    const validExtensions = ['.mxf', '.mp4', '.mov', '.avi', '.mkv', '.wav', '.mp3', '.aac', '.flac'];
+    const fileExtension = file.name.toLowerCase().match(/\.\w+$/)?.[0];
+    const isValidFile = file.type.startsWith("audio/") || 
+                       file.type.startsWith("video/") || 
+                       (fileExtension && validExtensions.includes(fileExtension));
+    
+    if (file && isValidFile) {
       setFileName(file.name);
       // Revoga URL anterior se existir
       if (urlRef.current) {
@@ -34,7 +49,7 @@ export default function MediaUpload() {
       setMediaURL(newUrl);
       setFileType(file.type || 'video/mxf');
     } else {
-      alert("Por favor, envie um arquivo de áudio ou vídeo válido 🎵🎬");
+      alert("Por favor, envie um arquivo de áudio ou vídeo válido 🎵🎬\n\nFormatos aceitos: MP4, MXF, MOV, AVI, MKV, WAV, MP3, AAC, FLAC");
     }
   };
 
@@ -56,7 +71,29 @@ export default function MediaUpload() {
     if (!fileName) return;
     
     try {
-      // Verificar se o backend está disponível primeiro
+      // Obter o arquivo do input ANTES de qualquer verificação
+      const input = document.getElementById("media-upload") as HTMLInputElement;
+      const file = input.files?.[0];
+      
+      if (!file) {
+        alert("Arquivo não encontrado. Por favor, selecione um arquivo novamente.");
+        return;
+      }
+      
+      // VERIFICAR TAMANHO ANTES DE TUDO (limite: 500MB)
+      const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+      const fileSizeMB = file.size / (1024 * 1024);
+      
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`❌ Arquivo muito grande!\n\n` +
+              `Tamanho: ${fileSizeMB.toFixed(2)} MB\n` +
+              `Limite máximo: 500 MB\n\n` +
+              `Por favor, comprima o vídeo antes de fazer upload.\n` +
+              `Recomendamos usar HandBrake ou FFmpeg para reduzir o tamanho.`);
+        return;
+      }
+      
+      // Verificar se o backend está disponível
       console.log("Verificando conexão com o backend...");
       const healthCheck = await checkBackendHealth();
       
@@ -67,26 +104,16 @@ export default function MediaUpload() {
       
       console.log("Backend está disponível:", healthCheck.message);
       
-      // Ativar a tela de loading
-      setIsLoading(true);
-      
-      // Obter o arquivo do input
-      const input = document.getElementById("media-upload") as HTMLInputElement;
-      const file = input.files?.[0];
-      
-      if (!file) {
-        alert("Arquivo não encontrado. Por favor, selecione um arquivo novamente.");
-        setIsLoading(false);
-        return;
-      }
-      
       // Log detalhado sobre o arquivo
       console.log("Enviando arquivo:", {
         nome: file.name, 
-        tamanho: (file.size / (1024 * 1024)).toFixed(2) + "MB", 
+        tamanho: fileSizeMB.toFixed(2) + " MB", 
         tipo: file.type,
         ultimaModificacao: new Date(file.lastModified).toLocaleString()
       });
+      
+      // Ativar a tela de loading APENAS após todas as verificações
+      setIsLoading(true);
       
       // Criar FormData e adicionar o arquivo
       const formData = new FormData();
@@ -99,13 +126,19 @@ export default function MediaUpload() {
       console.log(`Enviando para ${apiUrl}`);
       
       // Configuração completa e explícita do fetch
+      // Não usar timeout para arquivos grandes - deixar o backend controlar
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutos
+      
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData,
         mode: API_CONFIG.CORS.MODE,
         cache: "no-cache",
-        signal: AbortSignal.timeout(API_CONFIG.TIMEOUT)
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       // Log detalhado da resposta
       console.log("Resposta recebida:", {
@@ -247,7 +280,7 @@ export default function MediaUpload() {
         <input
           id="media-upload"
           type="file"
-          accept="audio/*,video/*,.mxf"
+          accept="audio/*,video/*,.mxf,.mp4,.mov,.avi,.mkv,.wav,.mp3,.aac,.flac"
           onChange={handleFileChange}
           disabled={!!(fileName && mediaURL)}
           style={{ display: "none" }}

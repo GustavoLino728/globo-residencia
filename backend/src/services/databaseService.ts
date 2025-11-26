@@ -1,7 +1,6 @@
 import { supabase } from '../config/supabase';
 
 export interface ArquivoMidiaData {
-  auth_id: string;
   nome_original_arquivo: string;
   caminho_storage: string;
   tamanho_bytes: number;
@@ -10,41 +9,9 @@ export interface ArquivoMidiaData {
 }
 
 export async function insertArquivoMidia(data: ArquivoMidiaData): Promise<number> {
-  // Buscar usuário pelo auth_id
-  let { data: usuarioData, error: usuarioError } = await supabase
-    .from('usuario')
-    .select('id_usuario')
-    .eq('auth_id', data.auth_id)
-    .single();
-
-  // Se usuário não existe, criar automaticamente (útil para desenvolvimento)
-  if (usuarioError || !usuarioData) {
-    console.log(`⚠️ Usuário com auth_id '${data.auth_id}' não encontrado. Criando automaticamente...`);
-    
-    const isDevUser = data.auth_id === '8f03973e-3b82-4a3a-9504-caa08e053e2d' || data.auth_id === 'dev-user-id';
-    
-    const { data: novoUsuario, error: erroInsercao } = await supabase
-      .from('usuario')
-      .insert({
-        nome: isDevUser ? 'Dev User' : 'Usuário Automático',
-        email: isDevUser ? 'dev@localhost' : `${data.auth_id}@system.local`,
-        auth_id: data.auth_id
-      })
-      .select('id_usuario')
-      .single();
-
-    if (erroInsercao || !novoUsuario) {
-      throw new Error(`Erro ao criar usuário automaticamente: ${erroInsercao?.message}`);
-    }
-
-    usuarioData = novoUsuario;
-    console.log(`✅ Usuário criado com id_usuario: ${usuarioData.id_usuario}`);
-  }
-
   const { data: result, error } = await supabase
     .from('arquivo_midia')
     .insert({
-      id_usuario_upload: usuarioData.id_usuario,
       nome_original_arquivo: data.nome_original_arquivo,
       caminho_storage: data.caminho_storage,
       tamanho_bytes: data.tamanho_bytes,
@@ -95,7 +62,6 @@ export interface MusicaIdentificadaData {
   isrc?: string;
   timestamp_inicio_seg: number;
   timestamp_fim_seg: number;
-  id_usuario_gerador?: number;
 }
 
 export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Promise<{ idMusica: number; idDeteccao: number }> {
@@ -161,8 +127,7 @@ export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Pr
       id_arquivo_midia: data.id_arquivo_midia,
       id_musica: idMusica,
       timestamp_inicio_seg: data.timestamp_inicio_seg,
-      timestamp_fim_seg: data.timestamp_fim_seg,
-      id_usuario_gerador: data.id_usuario_gerador
+      timestamp_fim_seg: data.timestamp_fim_seg
     })
     .select('id_deteccao')
     .single();
@@ -215,7 +180,6 @@ export interface DeteccaoMusicalData {
   id_deteccao: number;
   id_arquivo_midia: number;
   id_musica: number;
-  id_usuario_gerador: number;
   data_geracao: string;
 }
 
@@ -223,22 +187,19 @@ export interface DeteccaoMusicalData {
 export interface RelatorioEDLData {
   id_relatorio: number;
   id_arquivo_midia: number;
-  id_usuario_gerador: number;
   data_geracao: string;
 }
 
 // Criar detecção musical (relacionamento entre arquivo e músicas detectadas)
 export async function insertDeteccaoMusical(
   idArquivoMidia: number,
-  idMusica: number,
-  idUsuarioGerador: number
+  idMusica: number
 ): Promise<number> {
   const { data: result, error } = await supabase
     .from('deteccao_musical')
     .insert({
       id_arquivo_midia: idArquivoMidia,
-      id_musica: idMusica,
-      id_usuario_gerador: idUsuarioGerador
+      id_musica: idMusica
     })
     .select('id_deteccao')
     .single();
@@ -252,14 +213,12 @@ export async function insertDeteccaoMusical(
 
 // Criar relatório EDL
 export async function insertRelatorioEDL(
-  idArquivoMidia: number,
-  idUsuarioGerador: number
+  idArquivoMidia: number
 ): Promise<number> {
   const { data: result, error } = await supabase
     .from('relatorio_edl')
     .insert({
-      id_arquivo_midia: idArquivoMidia,
-      id_usuario_gerador: idUsuarioGerador
+      id_arquivo_midia: idArquivoMidia
     })
     .select('id_relatorio')
     .single();
@@ -271,28 +230,12 @@ export async function insertRelatorioEDL(
   return result.id_relatorio;
 }
 
-export async function getArquivosPorStatus(status: string, userId?: string) {
-  let query = supabase
+export async function getArquivosPorStatus(status: string) {
+  const { data, error } = await supabase
     .from('arquivo_midia')
     .select('*')
     .eq('status', status)
     .order('data_upload', { ascending: false });
-
-  // Se userId for fornecido, filtrar por usuário
-  if (userId) {
-    // Buscar id_usuario a partir do auth_id
-    const { data: usuarioData } = await supabase
-      .from('usuario')
-      .select('id_usuario')
-      .eq('auth_id', userId)
-      .single();
-    
-    if (usuarioData) {
-      query = query.eq('id_usuario_upload', usuarioData.id_usuario);
-    }
-  }
-
-  const { data, error } = await query;
 
   if (error) {
     throw new Error(`Erro ao buscar arquivos: ${error.message}`);

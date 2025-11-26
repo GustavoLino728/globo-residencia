@@ -4,6 +4,7 @@ import audioController from '../controllers/audioController';
 import { conditionalAuth } from '../middleware/conditionalAuth';
 import { uploadSchema, buscaAudDSchema } from '../schemas/fileSchemas';
 import { supabase } from '../config/supabase';
+import { getArquivosPorStatus, getArquivoComMusicas } from '../services/databaseService';
 
 async function fileRoutes(fastify: FastifyInstance) {
   
@@ -17,25 +18,15 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const userId = request.user?.id;
-      
-      const fileInfo = await saveFile(data, userId);
+      const fileInfo = await saveFile(data);
 
       return { 
         message: 'Arquivo salvo com sucesso',
-        uploadedBy: {
-          id: request.user?.id,
-          email: request.user?.email,
-          name: request.user?.name
-        },
         arquivo: {
           id: fileInfo.idArquivoBanco,
           nomeOriginal: fileInfo.fileName,
           tamanhoBytes: fileInfo.fileSize,
           formato: fileInfo.format
-        },
-        local: {
-          path: fileInfo.localPath
         },
         supabase: {
           path: fileInfo.supabasePath,
@@ -56,16 +47,40 @@ async function fileRoutes(fastify: FastifyInstance) {
     schema: buscaAudDSchema
   }, audioController.buscaAudDHandler);
 
+  // Buscar TODOS os arquivos do banco
+  fastify.get('/arquivos', {
+    preHandler: conditionalAuth
+  }, async (request, reply) => {
+    try {
+      const { data: arquivos, error } = await supabase
+        .from('arquivo_midia')
+        .select('*')
+        .order('data_upload', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao buscar arquivos:', error);
+        throw new Error(`Erro ao buscar arquivos: ${error.message}`);
+      }
+
+      console.log(`✅ Total de arquivos no banco: ${arquivos?.length || 0}`);
+      return { arquivos: arquivos || [] };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      return reply.status(500).send({ 
+        error: 'Erro ao buscar arquivos',
+        details: errorMessage
+      });
+    }
+  });
+
   // Buscar arquivos por status
   fastify.get('/arquivos/:status', {
     preHandler: conditionalAuth
   }, async (request, reply) => {
     try {
       const { status } = request.params as { status: string };
-      const userId = request.user?.id;
 
-      const { getArquivosPorStatus } = await import('../services/databaseService.js');
-      const arquivos = await getArquivosPorStatus(status, userId);
+      const arquivos = await getArquivosPorStatus(status);
 
       return { arquivos };
     } catch (error) {
@@ -89,7 +104,6 @@ async function fileRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'ID de arquivo inválido' });
       }
 
-      const { getArquivoComMusicas } = await import('../services/databaseService.js');
       const resultado = await getArquivoComMusicas(idArquivo);
 
       return resultado;
@@ -130,6 +144,56 @@ async function fileRoutes(fastify: FastifyInstance) {
       });
     }
   });
+
+  // Finalizar arquivo após validação do usuário
+  fastify.post('/arquivo/:id/finalizar', {
+    preHandler: conditionalAuth
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const idArquivo = parseInt(id, 10);
+
+      if (isNaN(idArquivo)) {
+        return reply.status(400).send({ error: 'ID de arquivo inválido' });
+      }
+
+      // Verificar se o arquivo existe
+      const { data: arquivo, error: arquivoError } = await supabase
+        .from('arquivo_midia')
+        .select('status')
+        .eq('id_arquivo', idArquivo)
+        .single();
+
+      if (arquivoError || !arquivo) {
+        return reply.status(404).send({ error: 'Arquivo não encontrado' });
+      }
+
+      // Atualizar status para Finalizado
+      const { error: updateError } = await supabase
+        .from('arquivo_midia')
+        .update({ status: 'Finalizado' })
+        .eq('id_arquivo', idArquivo);
+
+      if (updateError) {
+        throw new Error(`Erro ao finalizar arquivo: ${updateError.message}`);
+      }
+
+      console.log(`✅ Arquivo ${idArquivo} finalizado pelo usuário`);
+      
+      return { 
+        message: 'Arquivo finalizado com sucesso',
+        id_arquivo: idArquivo,
+        status: 'Finalizado'
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      return reply.status(500).send({ 
+        error: 'Erro ao finalizar arquivo',
+        details: errorMessage
+      });
+    }
+  });
 }
+
 
 export default fileRoutes;
