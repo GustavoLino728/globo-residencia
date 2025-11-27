@@ -4,7 +4,7 @@ import audioController from '../controllers/audioController';
 import { conditionalAuth } from '../middleware/conditionalAuth';
 import { uploadSchema, buscaAudDSchema } from '../schemas/fileSchemas';
 import { supabase } from '../config/supabase';
-import { getArquivosPorStatus, getArquivoComMusicas } from '../services/databaseService';
+import { getArquivosPorStatus, getArquivoComMusicas, insertRelatorioEDL } from '../services/databaseService';
 
 async function fileRoutes(fastify: FastifyInstance) {
   
@@ -193,12 +193,29 @@ async function fileRoutes(fastify: FastifyInstance) {
       }
 
       console.log(`✅ Arquivo ${idArquivo} finalizado pelo usuário`);
-      
-      return { 
-        message: 'Arquivo finalizado com sucesso',
-        id_arquivo: idArquivo,
-        status: 'Finalizado'
-      };
+
+      // Criar registro do relatório EDL
+      try {
+        const idRelatorio = await insertRelatorioEDL(idArquivo);
+        console.log(`✅ Relatório EDL ${idRelatorio} criado para arquivo ${idArquivo}`);
+        
+        return { 
+          message: 'Arquivo finalizado e relatório EDL criado com sucesso',
+          id_arquivo: idArquivo,
+          id_relatorio: idRelatorio,
+          status: 'Finalizado'
+        };
+      } catch (edlError) {
+        console.warn(`⚠️ Erro ao criar relatório EDL: ${edlError instanceof Error ? edlError.message : String(edlError)}`);
+        
+        // Mesmo se falhar a criação do EDL, o arquivo foi finalizado
+        return { 
+          message: 'Arquivo finalizado com sucesso (relatório EDL não criado)',
+          id_arquivo: idArquivo,
+          status: 'Finalizado',
+          warning: 'Relatório EDL não foi criado'
+        };
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       return reply.status(500).send({ 
