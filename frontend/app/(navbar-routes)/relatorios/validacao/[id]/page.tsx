@@ -230,7 +230,7 @@ export default function ValidandoPage() {
     }
   };
   
-  // Função para finalizar o arquivo
+  // Função para finalizar o arquivo e gerar EDL
   const handleFinalizar = async () => {
     try {
       // Extrair ID numérico
@@ -243,7 +243,7 @@ export default function ValidandoPage() {
       }
 
       if (!idArquivo || isNaN(idArquivo)) {
-        alert('Erro: ID de arquivo inválido');
+        console.error('Erro: ID de arquivo inválido');
         return;
       }
 
@@ -256,10 +256,9 @@ export default function ValidandoPage() {
 
       if (response.ok) {
         console.log('✅ Arquivo finalizado com sucesso!');
-        alert('✅ Relatório finalizado com sucesso!');
         
-        // Redirecionar para a página de relatórios
-        window.location.href = '/relatorios';
+        // Abrir modal EDL
+        handleGenerateEdl();
       } else {
         const error = await response.json();
         console.error('❌ Erro ao finalizar:', error);

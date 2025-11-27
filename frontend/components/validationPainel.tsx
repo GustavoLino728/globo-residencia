@@ -86,23 +86,13 @@ export default function ValidationPanel({
         onReject={handleReject}
       />
       
-      {/* Botões de ação (visível apenas se tudo for validado) */}
+      {/* Botão Gerar EDL (visível apenas se tudo for validado) */}
       {allSongsValidated && (
-        <div className="mt-8 flex flex-col gap-4">
-          {onFinalizar && (
-            <Button
-              color="success"
-              variant="solid"
-              onPress={onFinalizar}
-              className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-            >
-              ✓ Confirmar e Finalizar
-            </Button>
-          )}
+        <div className="mt-8 flex justify-center">
           <Button
             color="primary"
             variant="solid"
-            onPress={onGenerateEdl}
+            onPress={onFinalizar || onGenerateEdl}
             className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
           >
             Gerar EDL
