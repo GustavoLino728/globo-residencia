@@ -228,7 +228,48 @@ export default function ValidandoPage() {
     if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
-  }; 
+  };
+  
+  // Função para finalizar o arquivo
+  const handleFinalizar = async () => {
+    try {
+      // Extrair ID numérico
+      let idArquivo: number | null = null;
+      
+      if (id.startsWith('db-')) {
+        idArquivo = parseInt(id.replace('db-', ''), 10);
+      } else if (!isNaN(parseInt(id, 10))) {
+        idArquivo = parseInt(id, 10);
+      }
+
+      if (!idArquivo || isNaN(idArquivo)) {
+        alert('Erro: ID de arquivo inválido');
+        return;
+      }
+
+      console.log(`✅ Finalizando arquivo ${idArquivo}...`);
+
+      const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}/finalizar`, {
+        method: 'POST',
+        mode: 'cors',
+      });
+
+      if (response.ok) {
+        console.log('✅ Arquivo finalizado com sucesso!');
+        alert('✅ Relatório finalizado com sucesso!');
+        
+        // Redirecionar para a página de relatórios
+        window.location.href = '/relatorios';
+      } else {
+        const error = await response.json();
+        console.error('❌ Erro ao finalizar:', error);
+        alert(`Erro ao finalizar arquivo: ${error.details || error.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao finalizar arquivo:', error);
+      alert('Erro ao finalizar arquivo. Verifique o console.');
+    }
+  };
 
   // Estado de carregamento
   if (isLoading) {
@@ -284,7 +325,8 @@ export default function ValidandoPage() {
               handleNext={handleNext}
               handleApprove={handleApprove}
               handleReject={handleReject}
-              onGenerateEdl={handleGenerateEdl} 
+              onGenerateEdl={handleGenerateEdl}
+              onFinalizar={handleFinalizar}
               />
 
               {/* Player de Música */}

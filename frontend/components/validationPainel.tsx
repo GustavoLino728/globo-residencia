@@ -24,6 +24,7 @@ interface ValidationPanelProps {
   handleApprove: () => void;
   handleReject: () => void;
   onGenerateEdl: () => void; // A função para abrir o modal
+  onFinalizar?: () => void; // Nova função para finalizar o arquivo (opcional)
 }
 
 // O componente em si
@@ -39,6 +40,7 @@ export default function ValidationPanel({
   handleApprove,
   handleReject,
   onGenerateEdl,
+  onFinalizar,
 }: ValidationPanelProps) {
 
   // O componente NÃO precisa de useState, useEffect, ou useParams!
@@ -84,14 +86,24 @@ export default function ValidationPanel({
         onReject={handleReject}
       />
       
-      {/* Botão Gerar EDL (visível apenas se tudo for validado) */}
+      {/* Botões de ação (visível apenas se tudo for validado) */}
       {allSongsValidated && (
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex flex-col gap-4">
+          {onFinalizar && (
+            <Button
+              color="success"
+              variant="solid"
+              onPress={onFinalizar}
+              className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              ✓ Confirmar e Finalizar
+            </Button>
+          )}
           <Button
             color="primary"
             variant="solid"
-            onPress={onGenerateEdl} // Usa a função passada via props
-            className="w-36 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            onPress={onGenerateEdl}
+            className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
           >
             Gerar EDL
           </Button>
