@@ -91,7 +91,7 @@ export default function DashboardPage() {
             >
                 <div className="flex flex-col justify-center items-center h-64 space-y-4">
                     <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
-                    <p className="text-white/70">Carregando músicas do banco...</p>
+                    <p className="text-white/70">Carregando músicas...</p>
                 </div>
             </PageLayout>
         );
