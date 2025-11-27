@@ -45,6 +45,7 @@ export default function ValidandoPage() {
   }, [musicInfo, isNewFileId]);
   
   const isNewFile = !musicInfo || musicInfo.length === 0;
+  const hasMusicData = musicInfo && musicInfo.length > 0;
   const allSongsValidated = currentMusicData && currentMusicData.length > 0 ? Object.keys(validatedSongs).length === currentMusicData.length : false;
   
   const handleGenerateEdl = () => {
@@ -52,23 +53,97 @@ export default function ValidandoPage() {
     setShowEDLModal(true);
   };
   
-  // Carregar os dados do localStorage quando o componente montar
+  // Carregar os dados do banco de dados quando o componente montar
   useEffect(() => {
-    try {
-      // Primeiro, verificar se é um ID de upload recente
-      const lastUploadId = localStorage.getItem('lastUploadId');
-      const uploadFileName = localStorage.getItem('uploadFileName');
-      
-      if (id === lastUploadId || id.startsWith('upload-')) {
-        // É um upload recente, usar os dados do localStorage
+    const loadData = async () => {
+      try {
+        // Extrair ID numérico do banco (formato: db-123 ou apenas 123)
+        let idArquivo: number | null = null;
+        
+        if (id.startsWith('db-')) {
+          idArquivo = parseInt(id.replace('db-', ''), 10);
+        } else if (!isNaN(parseInt(id, 10))) {
+          idArquivo = parseInt(id, 10);
+        }
+
+        // Se tem ID válido, buscar do banco
+        if (idArquivo && !isNaN(idArquivo)) {
+          console.log(`📥 Buscando arquivo ${idArquivo} do banco...`);
+          
+          const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}`, {
+            method: 'GET',
+            mode: 'cors',
+          });
+
+          if (response.status === 404) {
+            console.error('❌ Arquivo não encontrado no banco (404)');
+            setHasError(true);
+            setIsLoading(false);
+            return;
+          }
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Resposta completa do backend:', JSON.stringify(data, null, 2));
+            console.log('📋 Arquivo:', data.arquivo);
+            console.log('🎵 Músicas recebidas:', data.musicas);
+            console.log('📊 Total de músicas:', data.musicas?.length || 0);
+
+            if (data.arquivo) {
+              // Se há músicas identificadas, mostrar
+              if (data.musicas && data.musicas.length > 0) {
+                console.log('✅ Processando músicas...');
+                
+                // Converter músicas do banco para o formato do componente
+                const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => {
+                  console.log(`🎵 Música ${index + 1}:`, musica);
+                  return {
+                    musica: musica.titulo || `Música ${index + 1}`,
+                    efeitoSonoro: musica.efeito_sonoro ? "Sim" : "Não",
+                    artista: musica.artista || "Desconhecido",
+                    interprete: musica.artista || "Desconhecido",
+                    gravadora: musica.gravadora || "N/A",
+                    tempoInicio: formatTime(musica.timestamp_inicio_seg) || "00:00",
+                    tempoFim: formatTime(musica.timestamp_fim_seg) || "00:00",
+                    isrc: musica.isrc || "Não informado",
+                    tempoTotal: formatTime(musica.timestamp_fim_seg - musica.timestamp_inicio_seg) || "00:00"
+                  };
+                });
+
+                console.log(`✅ ${formattedData.length} músicas formatadas:`, formattedData);
+                setMusicInfo(formattedData);
+                setValidationTitle(urlTitle || data.arquivo.nome_original_arquivo || `Validação ${id}`);
+                setHasError(false);
+                setIsLoading(false);
+                return;
+              } else {
+                // Arquivo existe mas não tem músicas ainda
+                console.warn('⚠️ Arquivo encontrado mas sem músicas');
+                console.log(`📋 Status do arquivo: ${data.arquivo.status}`);
+                console.log(`📋 Nome do arquivo: ${data.arquivo.nome_original_arquivo}`);
+                
+                // Mostrar erro apenas se não estiver processando
+                if (data.arquivo.status !== 'Em Processamento') {
+                  console.error('❌ Arquivo sem músicas e não está em processamento');
+                  setHasError(true);
+                }
+                setIsLoading(false);
+                return;
+              }
+            }
+          } else {
+            console.error(`❌ Erro HTTP ${response.status}: Arquivo não encontrado no banco`);
+          }
+        }
+
+        // Fallback: tentar localStorage (para uploads muito recentes)
+        const lastUploadId = localStorage.getItem('lastUploadId');
         const uploadResults = localStorage.getItem('uploadResults');
         
-        if (uploadResults) {
+        if (uploadResults && (id === lastUploadId || id.startsWith('upload-'))) {
           const data = JSON.parse(uploadResults);
-          console.log("Dados do upload carregados do localStorage:", data);
           
           if (data && data.musicas && Array.isArray(data.musicas)) {
-            // Converter os dados do backend para o formato esperado pelo componente
             const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => ({
               musica: musica.titulo || `Música ${index + 1}`,
               efeitoSonoro: "N/A",
@@ -82,40 +157,27 @@ export default function ValidandoPage() {
             }));
             
             setMusicInfo(formattedData);
-            
-            // Definir título baseado no nome do arquivo ou dados
-            if (urlTitle) {
-              setValidationTitle(urlTitle);
-            } else if (uploadFileName) {
-              setValidationTitle(`Validação - ${uploadFileName}`);
-            } else {
-              setValidationTitle(`Validação do Upload`);
-            }
-            
+            setValidationTitle(urlTitle || `Validação do Upload`);
             setIsLoading(false);
             return;
           }
         }
-      }
-      
-      // Se não é um upload recente, tentar carregar dados de exemplo
-      if (sampleMusicData[id]) {
-        console.log("Carregando dados de exemplo para ID:", id);
-        setMusicInfo(sampleMusicData[id]);
-        setValidationTitle(urlTitle || `Validação ${id}`);
-      } else {
+
         // Nenhum dado encontrado
         console.warn("Nenhum dado encontrado para o ID:", id);
+        setHasError(true);
         setMusicInfo([]);
+        
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        setHasError(true);
+        setMusicInfo([]);
+      } finally {
+        setIsLoading(false);
       }
-      
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      setHasError(true);
-      setMusicInfo([]);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    loadData();
   }, [id, urlTitle]);
   
   // Função auxiliar para formatar segundos em MM:SS
@@ -187,8 +249,8 @@ export default function ValidandoPage() {
     );
   }
 
-  // Estado de erro ou sem músicas
-  if (hasError || !musicInfo || musicInfo.length === 0) {
+  // Estado de erro ou sem músicas - só mostrar se realmente não houver dados
+  if (!hasMusicData && !isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
         <ErrorState

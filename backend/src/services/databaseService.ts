@@ -245,6 +245,8 @@ export async function getArquivosPorStatus(status: string) {
 }
 
 export async function getArquivoComMusicas(idArquivo: number) {
+  console.log(`📥 Buscando arquivo ID: ${idArquivo}`);
+  
   const { data: arquivo, error: arquivoError } = await supabase
     .from('arquivo_midia')
     .select('*')
@@ -252,8 +254,11 @@ export async function getArquivoComMusicas(idArquivo: number) {
     .single();
 
   if (arquivoError) {
+    console.error('❌ Erro ao buscar arquivo:', arquivoError);
     throw new Error(`Erro ao buscar arquivo: ${arquivoError.message}`);
   }
+
+  console.log('✅ Arquivo encontrado:', arquivo);
 
   // Buscar detecções com dados das músicas (JOIN)
   const { data: deteccoes, error: deteccoesError } = await supabase
@@ -262,7 +267,6 @@ export async function getArquivoComMusicas(idArquivo: number) {
       id_deteccao,
       timestamp_inicio_seg,
       timestamp_fim_seg,
-      data_geracao,
       musica:id_musica (
         id_musica,
         titulo,
@@ -278,7 +282,13 @@ export async function getArquivoComMusicas(idArquivo: number) {
     .order('timestamp_inicio_seg', { ascending: true });
 
   if (deteccoesError) {
+    console.error('❌ Erro ao buscar detecções musicais:', deteccoesError);
     throw new Error(`Erro ao buscar músicas: ${deteccoesError.message}`);
+  }
+
+  console.log(`📊 Total de detecções encontradas: ${deteccoes?.length || 0}`);
+  if (deteccoes && deteccoes.length > 0) {
+    console.log('🎵 Primeira detecção:', JSON.stringify(deteccoes[0], null, 2));
   }
 
   // Transformar dados para formato mais legível
@@ -286,9 +296,10 @@ export async function getArquivoComMusicas(idArquivo: number) {
     id_deteccao: d.id_deteccao,
     timestamp_inicio_seg: d.timestamp_inicio_seg,
     timestamp_fim_seg: d.timestamp_fim_seg,
-    data_geracao: d.data_geracao,
     ...d.musica
   }));
+
+  console.log(`✅ Retornando ${musicas.length} músicas para o frontend`);
 
   return {
     arquivo,

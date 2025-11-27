@@ -96,19 +96,33 @@ async function fileRoutes(fastify: FastifyInstance) {
   fastify.get('/arquivo/:id', {
     preHandler: conditionalAuth
   }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const idArquivo = parseInt(id, 10);
+    
     try {
-      const { id } = request.params as { id: string };
-      const idArquivo = parseInt(id, 10);
+      console.log(`📥 [GET /arquivo/${id}] Requisição recebida`);
 
       if (isNaN(idArquivo)) {
+        console.error(`❌ ID inválido: ${id}`);
         return reply.status(400).send({ error: 'ID de arquivo inválido' });
       }
 
       const resultado = await getArquivoComMusicas(idArquivo);
-
+      
+      console.log(`✅ [GET /arquivo/${id}] Retornando ${resultado.musicas.length} músicas`);
       return resultado;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error(`❌ [GET /arquivo/${id}] Erro:`, errorMessage);
+      
+      // Se o erro for "arquivo não encontrado", retornar 404 ao invés de 500
+      if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
+        return reply.status(404).send({ 
+          error: 'Arquivo não encontrado',
+          details: errorMessage
+        });
+      }
+      
       return reply.status(500).send({ 
         error: 'Erro ao buscar arquivo',
         details: errorMessage

@@ -45,7 +45,7 @@ fastify.register(swagger, {
     },
     servers: [
       {
-        url: 'http://localhost:8000',
+        url: `http://localhost:${process.env.PORT || 3000}`,
         description: 'Desenvolvimento'
       }
     ],
@@ -82,20 +82,22 @@ fastify.get('/', async (request, reply) => {
   return { 
     status: 'ok', 
     message: 'Servidor backend funcionando',
-    docs: 'http://localhost:8000/docs'
+    docs: `http://localhost:${process.env.PORT || 3000}/docs`
   };
 });
 
 fastify.register(authRoutes);
 fastify.register(fileRoutes);
 
-fastify.listen({ port: 8000 }, (err, address) => {
+const PORT = parseInt(process.env.PORT || '3000', 10);
+
+fastify.listen({ port: PORT }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
   }
-  console.log(`🚀 Servidor rodando na porta 8000`);
-  console.log(`📚 Documentação Swagger: http://localhost:8000/docs`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`📚 Documentação Swagger: http://localhost:${PORT}/docs`);
   console.log('📋 Variáveis carregadas:');
   console.log('  - NODE_ENV:', process.env.NODE_ENV || 'production');
   console.log('  - SKIP_AUTH:', process.env.SKIP_AUTH === 'true' ? '✅ Sem Autenticação (DEV)' : '✅ Utilizando Autenticação (PROD)');
