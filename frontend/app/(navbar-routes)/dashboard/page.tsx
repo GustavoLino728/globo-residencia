@@ -28,27 +28,20 @@ export default function DashboardPage() {
                 setLoading(true);
                 setError(null);
                 
-                console.log('🔍 Buscando músicas em:', `${API_CONFIG.BASE_URL}/musicas`);
-                
                 // Buscar todas as músicas usando SELECT * FROM musica
                 const response = await fetch(`${API_CONFIG.BASE_URL}/musicas`, {
                     method: 'GET',
                     mode: API_CONFIG.CORS.MODE
                 });
 
-                console.log('📡 Response status:', response.status);
-
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    console.error('❌ Erro na resposta:', errorData);
                     throw new Error(errorData.details || 'Erro ao buscar músicas do banco');
                 }
 
                 const data = await response.json();
-                console.log('📦 Dados recebidos:', data);
                 
                 const musicas = data.musicas || [];
-                console.log(`🎵 Total de músicas no banco: ${musicas.length}`);
 
                 // Converter para o formato esperado pelo MusicStats/MusicCharts
                 const musicasFormatadas: MusicData[] = musicas.map((m: any) => ({
@@ -60,9 +53,6 @@ export default function DashboardPage() {
                     album: m.album,
                     genero: m.genero
                 }));
-
-                console.log(`✅ Músicas formatadas: ${musicasFormatadas.length}`);
-                console.log('🎵 Primeiras músicas:', musicasFormatadas.slice(0, 3));
                 
                 setMusicData(musicasFormatadas);
 
@@ -71,7 +61,6 @@ export default function DashboardPage() {
                 }
 
             } catch (error) {
-                console.error('❌ Erro ao buscar músicas do banco:', error);
                 setError(error instanceof Error ? error.message : 'Erro ao carregar músicas do banco de dados.');
             } finally {
                 setLoading(false);
@@ -107,7 +96,7 @@ export default function DashboardPage() {
             >
                 <div className="flex justify-center items-center h-64">
                     <div className="text-center">
-                        <p className="text-white/90 text-lg mb-2">⚠️ {error}</p>
+                        <p className="text-white/90 text-lg mb-2">{error}</p>
                         <button 
                             onClick={() => window.location.reload()}
                             className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
@@ -130,7 +119,7 @@ export default function DashboardPage() {
             >
                 <div className="flex justify-center items-center h-64">
                     <div className="text-center">
-                        <p className="text-white/90 text-lg">📊 Nenhuma música identificada ainda</p>
+                        <p className="text-white/90 text-lg">Nenhuma música identificada ainda</p>
                         <p className="text-white/70 mt-2">Faça upload de arquivos para começar a análise</p>
                     </div>
                 </div>

@@ -14,7 +14,7 @@ export default function WatchFolderSimulator() {
       setDirHandle(handle);
       await listFiles(handle);
     } catch (err) {
-      console.error("Erro ao selecionar pasta:", err);
+      // Erro ao selecionar pasta
     }
   };
 

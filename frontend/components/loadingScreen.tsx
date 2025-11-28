@@ -40,11 +40,6 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
 
   // Efeito para iniciar a simulação de progresso
   useEffect(() => {
-    console.log("LoadingScreen: Inicializando...");
-    
-    // DEBUG: verificar estado inicial
-    console.log("Estado inicial do progresso:", progress);
-    
     // Forçar explicitamente a 0%
     setProgress(0);
     setCurrentStep(0);
@@ -55,11 +50,6 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
         const newProgress = prev >= 95 
           ? 95 
           : Math.min(95, prev + Math.max(0.2, (95 - prev) / 30));
-        
-        // Log para depuração
-        if (Math.floor(newProgress) % 10 === 0 && Math.floor(newProgress) !== Math.floor(prev)) {
-          console.log(`Progresso atualizado: ${Math.floor(newProgress)}%`);
-        }
         
         return newProgress;
       });
@@ -75,7 +65,6 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
     
     // Limpeza ao desmontar o componente
     return () => {
-      console.log("LoadingScreen: Limpando intervalos");
       clearAllIntervals();
     };
   }, []); // Executar apenas uma vez na montagem

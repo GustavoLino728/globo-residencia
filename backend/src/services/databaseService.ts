@@ -211,22 +211,34 @@ export async function insertDeteccaoMusical(
   return result.id_deteccao;
 }
 
-// Criar relatório EDL
+// Atualizar status de validação de uma detecção musical
+// Criar relatório EDL com contadores de validação
 export async function insertRelatorioEDL(
-  idArquivoMidia: number
+  idArquivoMidia: number,
+  totalMusicas: number,
+  musicasAprovadas: number,
+  musicasRejeitadas: number
 ): Promise<number> {
+  console.log(`[DB] Inserindo relatório EDL para arquivo ${idArquivoMidia}...`);
+  console.log(`[DB] Total: ${totalMusicas}, Aprovadas: ${musicasAprovadas}, Rejeitadas: ${musicasRejeitadas}`);
+  
   const { data: result, error } = await supabase
     .from('relatorio_edl')
     .insert({
-      id_arquivo_midia: idArquivoMidia
+      id_arquivo_midia: idArquivoMidia,
+      total_musicas: totalMusicas,
+      musicas_aprovadas: musicasAprovadas,
+      musicas_rejeitadas: musicasRejeitadas
     })
     .select('id_relatorio')
     .single();
 
   if (error) {
+    console.error(`[DB] Erro ao inserir relatório EDL:`, error);
     throw new Error(`Erro ao criar relatório EDL: ${error.message}`);
   }
 
+  console.log(`[DB] Relatório EDL criado com sucesso! ID: ${result.id_relatorio}`);
   return result.id_relatorio;
 }
 
@@ -242,6 +254,27 @@ export async function getArquivosPorStatus(status: string) {
   }
 
   return data || [];
+}
+
+// Buscar relatório EDL por ID do arquivo
+export async function getRelatorioEDL(idArquivo: number) {
+  console.log(`[DB] Buscando relatório EDL para arquivo ${idArquivo}...`);
+  
+  const { data, error } = await supabase
+    .from('relatorio_edl')
+    .select('*')
+    .eq('id_arquivo_midia', idArquivo)
+    .order('data_criacao', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error(`[DB] Erro ao buscar relatório EDL:`, error);
+    return null;
+  }
+
+  console.log(`[DB] Relatório EDL encontrado:`, data);
+  return data;
 }
 
 export async function getArquivoComMusicas(idArquivo: number) {

@@ -22,6 +22,9 @@ interface EDLDownloadModalProps {
   validationTitle: string;
   musicData?: MusicData[];
   validatedSongs?: Record<number, 'approved' | 'rejected'>;
+  totalMusicas?: number;
+  musicasAprovadas?: number;
+  musicasRejeitadas?: number;
 }
 
 const EDLDownloadModal = ({ 
@@ -30,15 +33,36 @@ const EDLDownloadModal = ({
   fileName, 
   validationTitle,
   musicData = [],
-  validatedSongs = {}
+  validatedSongs = {},
+  totalMusicas,
+  musicasAprovadas,
+  musicasRejeitadas
 }: EDLDownloadModalProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Calcular estatísticas
   const stats = useMemo(() => {
-    const approved = Object.values(validatedSongs).filter(status => status === 'approved').length;
-    const rejected = Object.values(validatedSongs).filter(status => status === 'rejected').length;
-    const total = musicData.length;
+
+    
+    let approved: number;
+    let rejected: number;
+    let total: number;
+    
+    // Se os contadores foram passados como props (vindo do relatório EDL), usar eles
+    if (totalMusicas !== undefined && musicasAprovadas !== undefined && musicasRejeitadas !== undefined) {
+
+      approved = musicasAprovadas;
+      rejected = musicasRejeitadas;
+      total = totalMusicas;
+    } else {
+
+      // Caso contrário, calcular dos dados locais
+      approved = Object.values(validatedSongs).filter(status => status === 'approved').length;
+      rejected = Object.values(validatedSongs).filter(status => status === 'rejected').length;
+      total = musicData.length;
+    }
+    
+
     
     // Calcular duração total do arquivo
     let totalSeconds = 0;
@@ -54,7 +78,7 @@ const EDLDownloadModal = ({
         }
       }
     } catch (e) {
-      console.error('Erro ao buscar dados do localStorage:', e);
+      // Erro ao buscar localStorage
     }
     
     // Se não conseguiu do localStorage, calcular pelo maior tempoFim das músicas
@@ -74,7 +98,7 @@ const EDLDownloadModal = ({
               }
             }
           } catch (e) {
-            console.error('Erro ao processar tempo:', music.tempoFim, e);
+            // Erro ao processar tempo
           }
         }
       });
@@ -86,10 +110,8 @@ const EDLDownloadModal = ({
       ? `${totalMins.toString().padStart(2, '0')}:${totalSecs.toString().padStart(2, '0')}`
       : '';
     
-    console.log('Stats calculadas:', { approved, rejected, total, duration, totalSeconds });
-    
     return { approved, rejected, total, duration };
-  }, [musicData, validatedSongs]);
+  }, [musicData, validatedSongs, totalMusicas, musicasAprovadas, musicasRejeitadas]);
 
   // Função para converter MM:SS em timecode (HH:MM:SS:FF)
   const timeToTimecode = (time: string): string => {
@@ -103,6 +125,9 @@ const EDLDownloadModal = ({
   };
 
   const handleDownloadEDL = () => {
+
+
+
     setIsDownloading(true);
     
     setTimeout(() => {
@@ -180,14 +205,18 @@ MÚSICAS REJEITADAS (Não incluídas no EDL)
       }
 
       // Criar e fazer download do arquivo
+
+
       const blob = new Blob([edlContent], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       const safeFileName = validationTitle.replace(/[^a-zA-Z0-9-_]/g, '_');
       link.download = `${safeFileName}_EDL.txt`;
+
       document.body.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       

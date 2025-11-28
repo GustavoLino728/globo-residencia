@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import EDLDownloadModal from "@/components/edlDownloadModal";
 import  { VideoPlayer }  from "@/components/videoPlayer";
 import { sampleMusicData, defaultUndefinedMusicData } from "@/data/musicMock";
@@ -17,6 +17,7 @@ import PageLayout from "@/components/PageLayout"
 export default function ValidandoPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = params.id as string;
   const urlTitle = searchParams.get('title');
 
@@ -47,9 +48,10 @@ export default function ValidandoPage() {
   const isNewFile = !musicInfo || musicInfo.length === 0;
   const hasMusicData = musicInfo && musicInfo.length > 0;
   const allSongsValidated = currentMusicData && currentMusicData.length > 0 ? Object.keys(validatedSongs).length === currentMusicData.length : false;
+  const [isSubmitting, setIsSubmitting] = useState(false); // Flag para evitar dupla submissão
   
   const handleGenerateEdl = () => {
-    console.log("Abrindo modal de download EDL...");
+    // Sempre permitir abrir o modal EDL (mesmo para arquivos upload- não finalizados)
     setShowEDLModal(true);
   };
   
@@ -68,15 +70,12 @@ export default function ValidandoPage() {
 
         // Se tem ID válido, buscar do banco
         if (idArquivo && !isNaN(idArquivo)) {
-          console.log(`📥 Buscando arquivo ${idArquivo} do banco...`);
-          
           const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}`, {
             method: 'GET',
             mode: 'cors',
           });
 
           if (response.status === 404) {
-            console.error('❌ Arquivo não encontrado no banco (404)');
             setHasError(true);
             setIsLoading(false);
             return;
@@ -84,19 +83,12 @@ export default function ValidandoPage() {
           
           if (response.ok) {
             const data = await response.json();
-            console.log('✅ Resposta completa do backend:', JSON.stringify(data, null, 2));
-            console.log('📋 Arquivo:', data.arquivo);
-            console.log('🎵 Músicas recebidas:', data.musicas);
-            console.log('📊 Total de músicas:', data.musicas?.length || 0);
 
             if (data.arquivo) {
               // Se há músicas identificadas, mostrar
               if (data.musicas && data.musicas.length > 0) {
-                console.log('✅ Processando músicas...');
-                
                 // Converter músicas do banco para o formato do componente
                 const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => {
-                  console.log(`🎵 Música ${index + 1}:`, musica);
                   return {
                     musica: musica.titulo || `Música ${index + 1}`,
                     efeitoSonoro: musica.efeito_sonoro ? "Sim" : "Não",
@@ -110,7 +102,6 @@ export default function ValidandoPage() {
                   };
                 });
 
-                console.log(`✅ ${formattedData.length} músicas formatadas:`, formattedData);
                 setMusicInfo(formattedData);
                 setValidationTitle(urlTitle || data.arquivo.nome_original_arquivo || `Validação ${id}`);
                 setHasError(false);
@@ -118,21 +109,14 @@ export default function ValidandoPage() {
                 return;
               } else {
                 // Arquivo existe mas não tem músicas ainda
-                console.warn('⚠️ Arquivo encontrado mas sem músicas');
-                console.log(`📋 Status do arquivo: ${data.arquivo.status}`);
-                console.log(`📋 Nome do arquivo: ${data.arquivo.nome_original_arquivo}`);
-                
                 // Mostrar erro apenas se não estiver processando
                 if (data.arquivo.status !== 'Em Processamento') {
-                  console.error('❌ Arquivo sem músicas e não está em processamento');
                   setHasError(true);
                 }
                 setIsLoading(false);
                 return;
               }
             }
-          } else {
-            console.error(`❌ Erro HTTP ${response.status}: Arquivo não encontrado no banco`);
           }
         }
 
@@ -164,12 +148,10 @@ export default function ValidandoPage() {
         }
 
         // Nenhum dado encontrado
-        console.warn("Nenhum dado encontrado para o ID:", id);
         setHasError(true);
         setMusicInfo([]);
         
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
         setHasError(true);
         setMusicInfo([]);
       } finally {
@@ -215,58 +197,170 @@ export default function ValidandoPage() {
   };
 
   const handleApprove = () => {
-    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'approved' }));
-    console.log("Música aprovada!");
-    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
+    const newValidatedSongs = { ...validatedSongs, [currentIndex]: 'approved' as 'approved' | 'rejected' };
+    setValidatedSongs(newValidatedSongs);
+    
+    // Verificar se todas as músicas foram validadas após esta aprovação
+    const totalValidated = Object.keys(newValidatedSongs).length;
+    const totalMusics = currentMusicData?.length || 0;
+    
+    // Se todas as músicas foram validadas, finalizar automaticamente
+    // MAS apenas se o arquivo já estiver salvo no banco (não é upload- local)
+    if (totalValidated === totalMusics && totalMusics > 0) {
+      if (id.startsWith('upload-')) {
+        // Apenas avançar para próxima música ou mostrar mensagem
+        if (currentMusicData && currentIndex < currentMusicData.length - 1) {
+          setTimeout(() => handleNext(), 500);
+        }
+      } else {
+        // Pequeno delay para o usuário ver a última validação
+        setTimeout(() => {
+          handleAutoFinalizar();
+        }, 1000);
+      }
+    } else if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
   };
 
   const handleReject = () => {
-    setValidatedSongs(prev => ({ ...prev, [currentIndex]: 'rejected' }));
-    console.log("Música rejeitada!");
-    if (currentMusicData && currentIndex < currentMusicData.length - 1) {
+    const newValidatedSongs = { ...validatedSongs, [currentIndex]: 'rejected' as 'approved' | 'rejected' };
+    setValidatedSongs(newValidatedSongs);
+    
+    // Verificar se todas as músicas foram validadas após esta rejeição
+    const totalValidated = Object.keys(newValidatedSongs).length;
+    const totalMusics = currentMusicData?.length || 0;
+    
+    // Se todas as músicas foram validadas, finalizar automaticamente
+    // MAS apenas se o arquivo já estiver salvo no banco (não é upload- local)
+    if (totalValidated === totalMusics && totalMusics > 0) {
+      if (id.startsWith('upload-')) {
+        // Apenas avançar para próxima música ou mostrar mensagem
+        if (currentMusicData && currentIndex < currentMusicData.length - 1) {
+          setTimeout(() => handleNext(), 500);
+        }
+      } else {
+        // Pequeno delay para o usuário ver a última validação
+        setTimeout(() => {
+          handleAutoFinalizar();
+        }, 1000);
+      }
+    } else if (currentMusicData && currentIndex < currentMusicData.length - 1) {
       setTimeout(() => handleNext(), 500);
     }
   };
   
-  // Função para finalizar o arquivo e gerar EDL
-  const handleFinalizar = async () => {
+  // Função para finalizar arquivo (apenas muda status, não cria relatório EDL)
+  const handleAutoFinalizar = async () => {
     try {
       // Extrair ID numérico
       let idArquivo: number | null = null;
       
       if (id.startsWith('db-')) {
         idArquivo = parseInt(id.replace('db-', ''), 10);
-      } else if (!isNaN(parseInt(id, 10))) {
-        idArquivo = parseInt(id, 10);
+      } else if (id.startsWith('upload-')) {
+        // Upload local não pode ser finalizado
+        return;
+      } else {
+        const numericId = parseInt(id, 10);
+        if (!isNaN(numericId)) {
+          idArquivo = numericId;
+        }
       }
 
       if (!idArquivo || isNaN(idArquivo)) {
-        console.error('Erro: ID de arquivo inválido');
         return;
       }
 
-      console.log(`✅ Finalizando arquivo ${idArquivo}...`);
-
+      // Apenas atualizar status para Finalizado (sem criar relatório EDL)
       const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}/finalizar`, {
         method: 'POST',
         mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          apenasStatus: true  // Flag para indicar que não deve criar relatório EDL
+        }),
       });
 
       if (response.ok) {
-        console.log('✅ Arquivo finalizado com sucesso!');
-        
-        // Abrir modal EDL
-        handleGenerateEdl();
-      } else {
-        const error = await response.json();
-        console.error('❌ Erro ao finalizar:', error);
-        alert(`Erro ao finalizar arquivo: ${error.details || error.error}`);
+        // Redirecionar para a página de relatórios
+        setTimeout(() => {
+          router.push('/relatorios');
+        }, 1000);
       }
     } catch (error) {
-      console.error('❌ Erro ao finalizar arquivo:', error);
-      alert('Erro ao finalizar arquivo. Verifique o console.');
+      // Silencioso - auto-finalização não deve mostrar erros ao usuário
+    }
+  };
+  
+  // Função para gerar EDL (cria relatório no banco e abre modal)
+  const handleFinalizar = async () => {
+    // Evitar dupla submissão
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Extrair ID numérico
+      let idArquivo: number | null = null;
+      
+      if (id.startsWith('db-')) {
+        idArquivo = parseInt(id.replace('db-', ''), 10);
+      } else if (id.startsWith('upload-')) {
+        // ID de upload local - apenas gerar EDL localmente, sem salvar no banco
+        handleGenerateEdl();
+        setIsSubmitting(false);
+        return;
+      } else {
+        const numericId = parseInt(id, 10);
+        if (!isNaN(numericId)) {
+          idArquivo = numericId;
+        }
+      }
+
+      if (!idArquivo || isNaN(idArquivo)) {
+        handleGenerateEdl();
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Calcular contadores de validação
+      const totalMusicas = currentMusicData?.length || 0;
+      const musicasAprovadas = Object.values(validatedSongs).filter(status => status === 'approved').length;
+      const musicasRejeitadas = Object.values(validatedSongs).filter(status => status === 'rejected').length;
+
+      // Criar relatório EDL no banco
+      const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}/finalizar`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          totalMusicas,
+          musicasAprovadas,
+          musicasRejeitadas
+        }),
+      });
+
+      if (response.ok) {
+        // Abrir modal EDL
+        handleGenerateEdl();
+        
+        // Redirecionar para a página de relatórios após 2 segundos
+        setTimeout(() => {
+          router.push('/relatorios');
+        }, 2000);
+      } else {
+        const error = await response.json();
+        alert(`Erro ao finalizar arquivo: ${error.details || error.error}`);
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      alert('Erro ao finalizar arquivo.');
+      setIsSubmitting(false);
     }
   };
 

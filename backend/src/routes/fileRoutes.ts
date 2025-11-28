@@ -130,6 +130,35 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Buscar relatório EDL de um arquivo
+  fastify.get('/arquivo/:id/relatorio', {
+    preHandler: conditionalAuth
+  }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const idArquivo = parseInt(id, 10);
+    
+    try {
+      if (isNaN(idArquivo)) {
+        return reply.status(400).send({ error: 'ID de arquivo inválido' });
+      }
+
+      const { getRelatorioEDL } = await import('../services/databaseService.js');
+      const relatorio = await getRelatorioEDL(idArquivo);
+      
+      if (!relatorio) {
+        return reply.status(404).send({ error: 'Relatório EDL não encontrado' });
+      }
+      
+      return relatorio;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      return reply.status(500).send({ 
+        error: 'Erro ao buscar relatório EDL',
+        details: errorMessage
+      });
+    }
+  });
+
   // Buscar todas as músicas do banco (apenas tabela musica, sem JOIN)
   fastify.get('/musicas', {
     preHandler: conditionalAuth
@@ -194,10 +223,31 @@ async function fileRoutes(fastify: FastifyInstance) {
 
       console.log(`✅ Arquivo ${idArquivo} finalizado pelo usuário`);
 
-      // Criar registro do relatório EDL
+      // Extrair contadores de validação do corpo da requisição
+      const body = request.body as any;
+      
+      // Se apenasStatus=true, não criar relatório EDL (auto-finalização)
+      if (body?.apenasStatus) {
+        console.log(`📌 Auto-finalização - apenas mudando status, sem criar relatório EDL`);
+        return { 
+          message: 'Arquivo finalizado (status atualizado)',
+          id_arquivo: idArquivo,
+          status: 'Finalizado'
+        };
+      }
+      
+      // Caso contrário, criar relatório EDL com contadores
+      const totalMusicas = body?.totalMusicas || 0;
+      const musicasAprovadas = body?.musicasAprovadas || 0;
+      const musicasRejeitadas = body?.musicasRejeitadas || 0;
+
+      console.log(`📊 Contadores recebidos - Total: ${totalMusicas}, Aprovadas: ${musicasAprovadas}, Rejeitadas: ${musicasRejeitadas}`);
+
+      // Criar registro do relatório EDL com os contadores
       try {
-        const idRelatorio = await insertRelatorioEDL(idArquivo);
-        console.log(`✅ Relatório EDL ${idRelatorio} criado para arquivo ${idArquivo}`);
+        console.log(`📝 Criando relatório EDL para arquivo ${idArquivo}...`);
+        const idRelatorio = await insertRelatorioEDL(idArquivo, totalMusicas, musicasAprovadas, musicasRejeitadas);
+        console.log(`✅ Relatório EDL ${idRelatorio} criado com sucesso!`);
         
         return { 
           message: 'Arquivo finalizado e relatório EDL criado com sucesso',

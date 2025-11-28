@@ -203,8 +203,16 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       musicasEncontradas.push({ inicioSegundos: inicioSec, fimSegundos: fimSec, titulo, artista, isrc, dataLancamento: dataLanc, fonte: meta });
     }
 
-    // remover duplicatas simples e ordenar por tempo de início
+    // Função para converter segundos em formato MM:SS
+    function secondsToTimecode(seconds: number): string {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Ordenar por tempo de início e consolidar músicas contíguas/sobrepostas
     musicasEncontradas.sort((a, b) => a.inicioSegundos - b.inicioSegundos);
+    
     const dedup: typeof musicasEncontradas = [];
     for (const m of musicasEncontradas) {
       const last = dedup[dedup.length - 1];
@@ -212,27 +220,53 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         dedup.push(m);
         continue;
       }
-      if (m.inicioSegundos <= last.fimSegundos + 1) {
+      
+      // Consolidar se a música atual começa dentro ou logo após a anterior (gap de até 2 segundos)
+      const gap = m.inicioSegundos - last.fimSegundos;
+      const sameMusic = (
+        (m.titulo && last.titulo && m.titulo.toLowerCase() === last.titulo.toLowerCase()) ||
+        (m.isrc && last.isrc && m.isrc === last.isrc)
+      );
+      
+      if (gap <= 2 && sameMusic) {
+        // Consolidar: expandir o fim para cobrir a música inteira
         last.fimSegundos = Math.max(last.fimSegundos, m.fimSegundos);
+        console.log(`🔗 Consolidando "${m.titulo}" - expandido até ${last.fimSegundos}s`);
+        
+        // Atualizar metadados se estiverem faltando
         if (!last.titulo && m.titulo) last.titulo = m.titulo;
         if (!last.artista && m.artista) last.artista = m.artista;
         if (!last.isrc && m.isrc) last.isrc = m.isrc;
         if (!last.dataLancamento && m.dataLancamento) last.dataLancamento = m.dataLancamento;
+        if (!last.fonte && m.fonte) last.fonte = m.fonte;
       } else {
+        // Nova música
         dedup.push(m);
       }
     }
+    
+    console.log(`📊 Total de músicas após consolidação: ${dedup.length}`);
 
     const respostaTraduzida = {
+      arquivo: idArquivoBanco ? { id: idArquivoBanco } : undefined,
       caminhoCombinado: combined,
       quantidadeSegmentos: segments.length,
       segundosPorSegmento: SEG_SECONDS,
       quantidadeMusicasEncontradas: dedup.length,
       musicas: dedup.map((m) => {
         const link = extractMusicLink(m.fonte);
+        const duracaoSegundos = m.fimSegundos - m.inicioSegundos;
+        const timecodeInicio = secondsToTimecode(m.inicioSegundos);
+        const timecodeFim = secondsToTimecode(m.fimSegundos);
+        
+        console.log(`🎵 ${m.titulo || 'Sem título'} - ${timecodeInicio} até ${timecodeFim} (${duracaoSegundos}s)`);
+        
         return {
           inicioSegundos: m.inicioSegundos,
           fimSegundos: m.fimSegundos,
+          duracaoSegundos: duracaoSegundos,
+          timecodeInicio: timecodeInicio,
+          timecodeFim: timecodeFim,
           titulo: m.titulo,
           artista: m.artista,
           isrc: m.isrc,

@@ -104,7 +104,6 @@ export default function MusicPlayer({ videoURL, tempoInicio, tempoFim, musica, a
         audio.currentTime = startSeconds;
       }
       audio.play().catch(err => {
-        console.error("Erro ao reproduzir:", err);
         setHasError(true);
       });
     }

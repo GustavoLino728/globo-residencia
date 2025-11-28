@@ -14,7 +14,14 @@ const Index = () => {
   const [uploadResults, setUploadResults] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showClearMessage, setShowClearMessage] = useState(false);
-  const [modalData, setModalData] = useState<{ id: string, title: string } | null>(null);
+  const [modalData, setModalData] = useState<{ 
+    id: string; 
+    title: string;
+    musicData?: any[];
+    totalMusicas?: number; 
+    musicasAprovadas?: number; 
+    musicasRejeitadas?: number;
+  } | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<VideoInfo[]>([]);
   const [dbVideosNaoFinalizados, setDbVideosNaoFinalizados] = useState<VideoInfo[]>([]);
   const [dbVideosFinalizados, setDbVideosFinalizados] = useState<VideoInfo[]>([]);
@@ -51,8 +58,6 @@ const Index = () => {
 
         const data = await response.json();
         const todosArquivos = data.arquivos || [];
-
-        console.log(`✅ Total de arquivos carregados do banco: ${todosArquivos.length}`);
         
         // Criar Set de IDs para deduplicação
         const idsNoBanco = new Set(todosArquivos.map((arq: any) => arq.id_arquivo));
@@ -72,26 +77,19 @@ const Index = () => {
         setDbVideosNaoFinalizados(videosNaoFinalizados);
         setDbVideosFinalizados(videosFinalizados);
 
-        console.log(`📊 Status dos arquivos:`);
-        todosArquivos.forEach((arq: any) => {
-          console.log(`  - ${arq.nome_original_arquivo}: ${arq.status}`);
-        });
-        console.log(`📊 Não finalizados: ${naoFinalizados.length}, Finalizados: ${finalizados.length}`);
-
         // Limpar localStorage se o arquivo já está no banco
         const lastUploadId = localStorage.getItem("lastUploadId");
         if (lastUploadId) {
           // Extrair ID numérico do lastUploadId se for do tipo "upload-123"
           const numericId = parseInt(lastUploadId.replace('upload-', ''), 10);
           if (!isNaN(numericId) && idsNoBanco.has(numericId)) {
-            console.log(`🧹 Limpando localStorage - arquivo já está no banco (ID: ${numericId})`);
             localStorage.removeItem("uploadResults");
             localStorage.removeItem("lastUploadId");
             localStorage.removeItem("uploadFileName");
           }
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar arquivos do banco:', error);
+        // Erro ao buscar arquivos
       }
       
       setLoading(false);
@@ -153,9 +151,6 @@ const Index = () => {
       setTimeout(() => {
         setShowClearMessage(false);
       }, 3000);
-      
-      // Feedback no console
-      console.log("Resultados limpos com sucesso!");
     }
   };
 
@@ -163,8 +158,89 @@ const Index = () => {
     router.push(`/relatorios/validacao/${id}?title=${encodeURIComponent(title)}`);
   }, [router]);
 
-  const handleFinishedVideoClick = useCallback((id: string, title: string) => {
-    setModalData({ id, title });
+  const handleFinishedVideoClick = useCallback(async (id: string, title: string) => {
+    // Extrair ID numérico (remover prefixo 'db-' se existir)
+    let numericId: number;
+    if (id.startsWith('db-')) {
+      numericId = parseInt(id.replace('db-', ''), 10);
+    } else {
+      numericId = parseInt(id, 10);
+    }
+    
+
+    
+    if (isNaN(numericId) || numericId <= 0) {
+
+      alert('ID de arquivo inválido');
+      return;
+    }
+
+    try {
+      // Buscar dados do arquivo com músicas
+
+      const arquivoResponse = await fetch(`http://127.0.0.1:8000/arquivo/${numericId}`, {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      let musicData: any[] = [];
+      let validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+
+      if (arquivoResponse.ok) {
+        const arquivoData = await arquivoResponse.json();
+
+        
+        // Formatar músicas para o modal
+        if (arquivoData.musicas && arquivoData.musicas.length > 0) {
+          musicData = arquivoData.musicas.map((musica: any) => ({
+            musica: musica.titulo || 'Música Desconhecida',
+            efeitoSonoro: musica.efeito_sonoro ? 'Sim' : undefined,
+            artista: musica.artista || 'Artista Desconhecido',
+            interprete: musica.artista || 'Artista Desconhecido',
+            gravadora: musica.gravadora || 'Gravadora Desconhecida',
+            tempoInicio: formatTime(musica.timestamp_inicio_seg || 0),
+            tempoFim: formatTime(musica.timestamp_fim_seg || 0),
+            isrc: musica.isrc || 'N/A',
+            tempoTotal: formatTime((musica.timestamp_fim_seg || 0) - (musica.timestamp_inicio_seg || 0))
+          }));
+        }
+      }
+
+      // Buscar dados do relatório EDL
+      console.log(`[DEBUG] Buscando relatório para arquivo ID: ${numericId}`);
+      const response = await fetch(`http://127.0.0.1:8000/arquivo/${numericId}/relatorio`, {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      console.log(`[DEBUG] Status da resposta: ${response.status}`);
+
+      if (response.ok) {
+        const relatorio = await response.json();
+        console.log(`[DEBUG] Relatório recebido:`, relatorio);
+
+
+
+
+        
+        setModalData({ 
+          id, 
+          title,
+          musicData,
+          totalMusicas: relatorio.total_musicas || 0,
+          musicasAprovadas: relatorio.musicas_aprovadas || 0,
+          musicasRejeitadas: relatorio.musicas_rejeitadas || 0
+        });
+
+      } else {
+
+        // Se não houver relatório, abrir modal com dados zerados
+        setModalData({ id, title, musicData, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
+      }
+    } catch (error) {
+
+      setModalData({ id, title, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
+    }
   }, []);
 
   // Remover a renderização de músicas do localStorage - agora vem apenas do banco
@@ -205,7 +281,7 @@ const Index = () => {
               />
               {allNotFinishedVideos.length === 0 && (
                 <div className="text-center py-8 text-white/70">
-                  📁 Nenhum arquivo não finalizado. Faça upload de um arquivo para começar.
+                  Nenhum arquivo não finalizado. Faça upload de um arquivo para começar.
                 </div>
               )}
             </GlassCard>
@@ -231,8 +307,11 @@ const Index = () => {
         onClose={() => setModalData(null)} 
         fileName={modalData?.id || ""} 
         validationTitle={modalData?.title || ""}
-        musicData={[]}
+        musicData={modalData?.musicData || []}
         validatedSongs={{}}
+        totalMusicas={modalData?.totalMusicas}
+        musicasAprovadas={modalData?.musicasAprovadas}
+        musicasRejeitadas={modalData?.musicasRejeitadas}
       />
     </PageLayout>
   );
