@@ -41,13 +41,13 @@ const Index = () => {
     duration: arquivo.duracao_segundos ? formatDuration(arquivo.duracao_segundos) : "00:00",
   });
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      
-      try {
-        // Buscar TODOS os arquivos do banco
-        const response = await fetch('http://127.0.0.1:8000/arquivos', {
+  // Função para carregar dados
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    
+    try {
+      // Buscar TODOS os arquivos do banco
+      const response = await fetch('http://127.0.0.1:8000/arquivos', {
           method: 'GET',
           mode: 'cors',
         });
@@ -66,16 +66,34 @@ const Index = () => {
         const naoFinalizados = todosArquivos.filter((arq: any) => 
           arq.status === 'Não Finalizado' || arq.status === 'Em Processamento' || arq.status === 'Erro'
         );
-        const finalizados = todosArquivos.filter((arq: any) => 
-          arq.status === 'Finalizado'
-        );
 
-        // Converter para VideoInfo (sem duplicatas)
+        // Converter arquivos não finalizados
         const videosNaoFinalizados = naoFinalizados.map(arquivoToVideoInfo);
-        const videosFinalizados = finalizados.map(arquivoToVideoInfo);
-
         setDbVideosNaoFinalizados(videosNaoFinalizados);
-        setDbVideosFinalizados(videosFinalizados);
+
+        // Buscar arquivos finalizados com id_relatorio
+        const finalizadosResponse = await fetch('http://127.0.0.1:8000/arquivos-finalizados', {
+          method: 'GET',
+          mode: 'cors',
+        });
+
+        if (finalizadosResponse.ok) {
+          const finalizadosData = await finalizadosResponse.json();
+          const videosFinalizados = (finalizadosData.arquivos || [])
+            .map((arq: any) => ({
+              id: `db-${arq.id_arquivo}`,
+              thumbnail: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=225&fit=crop",
+              title: arq.nome_original_arquivo,
+              duration: arq.duracao_segundos ? formatDuration(arq.duracao_segundos) : "00:00",
+              idRelatorio: arq.id_relatorio // Pode ser null
+            }));
+          setDbVideosFinalizados(videosFinalizados);
+        } else {
+          // Fallback
+          const finalizados = todosArquivos.filter((arq: any) => arq.status === 'Finalizado');
+          const videosFinalizados = finalizados.map(arquivoToVideoInfo);
+          setDbVideosFinalizados(videosFinalizados);
+        }
 
         // Limpar localStorage se o arquivo já está no banco
         const lastUploadId = localStorage.getItem("lastUploadId");
@@ -93,10 +111,24 @@ const Index = () => {
       }
       
       setLoading(false);
-    };
+    }, []);
 
+  useEffect(() => {
     loadData();
-  }, []);
+    
+    // Recarregar dados quando a página ficar visível
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [loadData]);
 
   // APENAS vídeos do banco de dados (sem duplicatas, sem localStorage)
   const allNotFinishedVideos = useMemo(() => {
@@ -159,7 +191,15 @@ const Index = () => {
   }, [router]);
 
   const handleFinishedVideoClick = useCallback(async (id: string, title: string) => {
-    // Extrair ID numérico (remover prefixo 'db-' se existir)
+    // Buscar o vídeo para pegar o id_relatorio
+    const video = dbVideosFinalizados.find(v => v.id === id);
+    
+    if (!video?.idRelatorio) {
+      alert('Relatório não encontrado para este arquivo');
+      return;
+    }
+
+    // Extrair ID numérico do arquivo
     let numericId: number;
     if (id.startsWith('db-')) {
       numericId = parseInt(id.replace('db-', ''), 10);
@@ -167,28 +207,22 @@ const Index = () => {
       numericId = parseInt(id, 10);
     }
     
-
-    
     if (isNaN(numericId) || numericId <= 0) {
-
       alert('ID de arquivo inválido');
       return;
     }
 
     try {
       // Buscar dados do arquivo com músicas
-
       const arquivoResponse = await fetch(`http://127.0.0.1:8000/arquivo/${numericId}`, {
         method: 'GET',
         mode: 'cors',
       });
 
       let musicData: any[] = [];
-      let validatedSongs: Record<number, 'approved' | 'rejected'> = {};
 
       if (arquivoResponse.ok) {
         const arquivoData = await arquivoResponse.json();
-
         
         // Formatar músicas para o modal
         if (arquivoData.musicas && arquivoData.musicas.length > 0) {
@@ -206,42 +240,32 @@ const Index = () => {
         }
       }
 
-      // Buscar dados do relatório EDL
-      console.log(`[DEBUG] Buscando relatório para arquivo ID: ${numericId}`);
-      const response = await fetch(`http://127.0.0.1:8000/arquivo/${numericId}/relatorio`, {
+      // Buscar dados do relatório EDL pelo id_relatorio
+      const response = await fetch(`http://127.0.0.1:8000/relatorio/${video.idRelatorio}`, {
         method: 'GET',
         mode: 'cors',
       });
 
-      console.log(`[DEBUG] Status da resposta: ${response.status}`);
-
       if (response.ok) {
         const relatorio = await response.json();
-        console.log(`[DEBUG] Relatório recebido:`, relatorio);
 
-
-
-
-        
-        setModalData({ 
+        setModalData({
           id, 
           title,
           musicData,
-          totalMusicas: relatorio.total_musicas || 0,
-          musicasAprovadas: relatorio.musicas_aprovadas || 0,
-          musicasRejeitadas: relatorio.musicas_rejeitadas || 0
+          totalMusicas: relatorio.total_musicas,
+          musicasAprovadas: relatorio.musicas_aprovadas,
+          musicasRejeitadas: relatorio.musicas_rejeitadas
         });
 
       } else {
-
         // Se não houver relatório, abrir modal com dados zerados
         setModalData({ id, title, musicData, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
       }
     } catch (error) {
-
       setModalData({ id, title, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
     }
-  }, []);
+  }, [dbVideosFinalizados]);
 
   // Remover a renderização de músicas do localStorage - agora vem apenas do banco
 

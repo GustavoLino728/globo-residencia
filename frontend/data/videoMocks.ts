@@ -3,6 +3,7 @@ export interface VideoInfo {
   thumbnail: string;
   title: string;
   duration: string;
+  idRelatorio?: number;
 }
 
 export const notFinishedVideos: VideoInfo[] = [

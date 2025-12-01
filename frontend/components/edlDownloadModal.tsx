@@ -42,27 +42,21 @@ const EDLDownloadModal = ({
 
   // Calcular estatísticas
   const stats = useMemo(() => {
-
-    
     let approved: number;
     let rejected: number;
     let total: number;
     
     // Se os contadores foram passados como props (vindo do relatório EDL), usar eles
     if (totalMusicas !== undefined && musicasAprovadas !== undefined && musicasRejeitadas !== undefined) {
-
       approved = musicasAprovadas;
       rejected = musicasRejeitadas;
       total = totalMusicas;
     } else {
-
       // Caso contrário, calcular dos dados locais
       approved = Object.values(validatedSongs).filter(status => status === 'approved').length;
       rejected = Object.values(validatedSongs).filter(status => status === 'rejected').length;
       total = musicData.length;
     }
-    
-
     
     // Calcular duração total do arquivo
     let totalSeconds = 0;

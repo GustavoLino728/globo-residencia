@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '../config/database';
 
 export interface ArquivoMidiaData {
   nome_original_arquivo: string;
@@ -26,7 +26,6 @@ export async function insertArquivoMidia(data: ArquivoMidiaData): Promise<number
     throw new Error(`Erro ao inserir registro no banco: ${error.message}`);
   }
 
-  console.log('✅ Registro criado no banco:', result.id_arquivo);
   return result.id_arquivo;
 }
 
@@ -219,9 +218,6 @@ export async function insertRelatorioEDL(
   musicasAprovadas: number,
   musicasRejeitadas: number
 ): Promise<number> {
-  console.log(`[DB] Inserindo relatório EDL para arquivo ${idArquivoMidia}...`);
-  console.log(`[DB] Total: ${totalMusicas}, Aprovadas: ${musicasAprovadas}, Rejeitadas: ${musicasRejeitadas}`);
-  
   const { data: result, error } = await supabase
     .from('relatorio_edl')
     .insert({
@@ -238,7 +234,6 @@ export async function insertRelatorioEDL(
     throw new Error(`Erro ao criar relatório EDL: ${error.message}`);
   }
 
-  console.log(`[DB] Relatório EDL criado com sucesso! ID: ${result.id_relatorio}`);
   return result.id_relatorio;
 }
 
@@ -258,13 +253,11 @@ export async function getArquivosPorStatus(status: string) {
 
 // Buscar relatório EDL por ID do arquivo
 export async function getRelatorioEDL(idArquivo: number) {
-  console.log(`[DB] Buscando relatório EDL para arquivo ${idArquivo}...`);
-  
   const { data, error } = await supabase
     .from('relatorio_edl')
     .select('*')
     .eq('id_arquivo_midia', idArquivo)
-    .order('data_criacao', { ascending: false })
+    .order('data_geracao', { ascending: false })
     .limit(1)
     .single();
 
@@ -273,7 +266,6 @@ export async function getRelatorioEDL(idArquivo: number) {
     return null;
   }
 
-  console.log(`[DB] Relatório EDL encontrado:`, data);
   return data;
 }
 
@@ -319,10 +311,7 @@ export async function getArquivoComMusicas(idArquivo: number) {
     throw new Error(`Erro ao buscar músicas: ${deteccoesError.message}`);
   }
 
-  console.log(`📊 Total de detecções encontradas: ${deteccoes?.length || 0}`);
-  if (deteccoes && deteccoes.length > 0) {
-    console.log('🎵 Primeira detecção:', JSON.stringify(deteccoes[0], null, 2));
-  }
+
 
   // Transformar dados para formato mais legível
   const musicas = (deteccoes || []).map((d: any) => ({
@@ -332,10 +321,127 @@ export async function getArquivoComMusicas(idArquivo: number) {
     ...d.musica
   }));
 
-  console.log(`✅ Retornando ${musicas.length} músicas para o frontend`);
-
   return {
     arquivo,
     musicas
   };
+}
+
+// Buscar todos os arquivos
+export async function getAllArquivos() {
+  const { data: arquivos, error } = await supabase
+    .from('arquivo_midia')
+    .select('*')
+    .order('data_upload', { ascending: false });
+
+  if (error) {
+    throw new Error(`Erro ao buscar arquivos: ${error.message}`);
+  }
+
+  return arquivos || [];
+}
+
+// Buscar relatório EDL por id_relatorio
+export async function getRelatorioEDLById(idRelatorio: number) {
+  const { data: relatorio, error } = await supabase
+    .from('relatorio_edl')
+    .select('*')
+    .eq('id_relatorio', idRelatorio)
+    .single();
+  
+  if (error || !relatorio) {
+    throw new Error('Relatório EDL não encontrado');
+  }
+  
+  return relatorio;
+}
+
+// Buscar arquivos finalizados com id_relatorio
+export async function getArquivosFinalizados() {
+  const { data: arquivos, error: arquivosError } = await supabase
+    .from('arquivo_midia')
+    .select('*')
+    .eq('status', 'Finalizado')
+    .order('data_upload', { ascending: false });
+
+  if (arquivosError) {
+    throw new Error(`Erro ao buscar arquivos: ${arquivosError.message}`);
+  }
+
+  console.log(`[DB] Total de arquivos finalizados: ${arquivos?.length || 0}`);
+
+  const arquivosComRelatorio = await Promise.all(
+    (arquivos || []).map(async (arquivo: any) => {
+      console.log(`[DB] Buscando relatório para arquivo ${arquivo.id_arquivo}...`);
+      
+      const { data: relatorios, error: relatorioError } = await supabase
+        .from('relatorio_edl')
+        .select('*')
+        .eq('id_arquivo_midia', arquivo.id_arquivo)
+        .order('data_geracao', { ascending: false })
+        .limit(1);
+
+      console.log(`[DB] Resultado da query:`, { 
+        arquivo_id: arquivo.id_arquivo,
+        relatorios,
+        error: relatorioError 
+      });
+
+      const relatorio = relatorios && relatorios.length > 0 ? relatorios[0] : null;
+
+      return {
+        ...arquivo,
+        id_relatorio: relatorio?.id_relatorio || null
+      };
+    })
+  );
+
+  console.log(`[DB] Arquivos com relatório processados:`, arquivosComRelatorio.map(a => ({
+    id: a.id_arquivo,
+    nome: a.nome_original_arquivo,
+    id_relatorio: a.id_relatorio
+  })));
+
+  return arquivosComRelatorio;
+}
+
+// Buscar todas as músicas
+export async function getAllMusicas() {
+  const { data: musicas, error } = await supabase
+    .from('musica')
+    .select('*')
+    .order('criado_em', { ascending: false });
+
+  if (error) {
+    throw new Error(`Erro ao buscar músicas: ${error.message}`);
+  }
+  
+  return musicas || [];
+}
+
+// Buscar arquivo por ID
+export async function getArquivoById(idArquivo: number) {
+  const { data: arquivo, error } = await supabase
+    .from('arquivo_midia')
+    .select('status')
+    .eq('id_arquivo', idArquivo)
+    .single();
+
+  if (error || !arquivo) {
+    throw new Error('Arquivo não encontrado');
+  }
+
+  return arquivo;
+}
+
+// Finalizar arquivo (atualizar status)
+export async function finalizarArquivo(idArquivo: number) {
+  const { error } = await supabase
+    .from('arquivo_midia')
+    .update({ status: 'Finalizado' })
+    .eq('id_arquivo', idArquivo);
+
+  if (error) {
+    throw new Error(`Erro ao finalizar arquivo: ${error.message}`);
+  }
 }

@@ -7,7 +7,6 @@ import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import fileRoutes from './routes/fileRoutes';
-import authRoutes from './routes/authRoutes';
 
 const fastify = Fastify({ logger: true, bodyLimit: 1024 * 1024 * 1024 });
 
@@ -33,7 +32,7 @@ fastify.register(cors, {
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type']
 });
 
 fastify.register(swagger, {
@@ -49,18 +48,10 @@ fastify.register(swagger, {
         description: 'Desenvolvimento'
       }
     ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
-    },
     tags: [
-      { name: 'Authentication', description: 'Endpoints de autenticação' },
-      { name: 'Files', description: 'Endpoints de upload e processamento de arquivos' }
+      { name: 'Files', description: 'Endpoints de upload e processamento de arquivos' },
+      { name: 'Music', description: 'Endpoints de catálogo de músicas' },
+      { name: 'Reports', description: 'Endpoints de relatórios EDL' }
     ]
   }
 });
@@ -77,7 +68,7 @@ fastify.register(swaggerUi, {
 fastify.get('/', async (request, reply) => {
   reply.header('Access-Control-Allow-Origin', '*');
   reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  reply.header('Access-Control-Allow-Headers', 'Content-Type');
   
   return { 
     status: 'ok', 
@@ -86,12 +77,11 @@ fastify.get('/', async (request, reply) => {
   };
 });
 
-fastify.register(authRoutes);
 fastify.register(fileRoutes);
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-fastify.listen({ port: PORT }, (err, address) => {
+fastify.listen({ port: PORT }, async (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -100,7 +90,6 @@ fastify.listen({ port: PORT }, (err, address) => {
   console.log(`📚 Documentação Swagger: http://localhost:${PORT}/docs`);
   console.log('📋 Variáveis carregadas:');
   console.log('  - NODE_ENV:', process.env.NODE_ENV || 'production');
-  console.log('  - SKIP_AUTH:', process.env.SKIP_AUTH === 'true' ? '✅ Sem Autenticação (DEV)' : '✅ Utilizando Autenticação (PROD)');
   console.log('  - AUDD_TOKEN:', process.env.AUDD_TOKEN ? '✅ Configurado' : '❌ Não encontrado');
   console.log('  - SUPABASE_URL:', process.env.SUPABASE_URL ? '✅ Configurado' : '❌ Não encontrado');
   console.log('  - SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? '✅ Configurado' : '❌ Não encontrado');

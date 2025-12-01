@@ -346,15 +346,22 @@ export default function ValidandoPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        
+        // Resetar flag de submissão
+        setIsSubmitting(false);
+        
         // Abrir modal EDL
         handleGenerateEdl();
         
-        // Redirecionar para a página de relatórios após 2 segundos
+        // Aguardar 2 segundos (tempo para o usuário baixar o EDL) e redirecionar
         setTimeout(() => {
           router.push('/relatorios');
+          router.refresh(); // Forçar atualização da página
         }, 2000);
       } else {
         const error = await response.json();
+        console.error('❌ Erro ao finalizar:', error);
         alert(`Erro ao finalizar arquivo: ${error.details || error.error}`);
         setIsSubmitting(false);
       }

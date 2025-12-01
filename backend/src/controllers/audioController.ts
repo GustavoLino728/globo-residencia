@@ -6,8 +6,6 @@ import { enqueue } from '../services/queueService';
 import { updateArquivoStatus, insertMultiplasMusicasIdentificadas, MusicaIdentificadaData } from '../services/databaseService';
 
 export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyReply) {
-  console.log('📥 Requisição recebida em /buscaAudD');
-
   let inputPath: string = '';
   let idArquivoBanco: number | undefined = undefined;
 
@@ -17,14 +15,12 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     const file = await (request as any).file();
     if (!file) return reply.status(400).send({ error: 'Nenhum arquivo multipart recebido' });
     
-    console.log('📤 Fazendo upload para Supabase Storage...');
     const fileInfo = await saveFile(file);
     
     // Salvar buffer em arquivo temporário para processamento
     inputPath = await bufferToTempFile(fileInfo.fileBuffer, fileInfo.fileName);
     idArquivoBanco = fileInfo.idArquivoBanco;
     
-    console.log('✅ Arquivo preparado para processamento');
     if (idArquivoBanco) {
       console.log(`📋 ID do banco: ${idArquivoBanco}`);
     }
@@ -38,9 +34,8 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Em Processamento');
-        console.log('✅ Status atualizado para "Em Processamento" no banco');
       } catch (err) {
-        console.log('⚠️ Erro ao atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
+        // Erro ao atualizar status
       }
     }
 
@@ -49,9 +44,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     console.log('Converted to wav: ' + wavPath);
 
     const SEG_SECONDS = 20;
-    console.log(`Starting splitWav for ${wavPath} with segmentSeconds=${SEG_SECONDS}`);
     const segments = await splitWav(wavPath, SEG_SECONDS);
-    console.log('Split into ' + segments.length + ' segments');
 
     const results: Array<{ segment: string; index: number; auddResponse: any }> = [];
     for (let i = 0; i < segments.length; i++) {
@@ -72,7 +65,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       results.push({ segment: seg, index: i, auddResponse: auddRes });
     }
 
-    console.log('Starting concatWavs');
     const combined = await concatWavs(segments, 'combined.wav');
     console.log('Concat finished: ' + combined);
 
@@ -298,7 +290,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
             timestamp_fim_seg: m.fimSegundos
           };
           
-          console.log(`🎵 Música ${index + 1}: "${musicaData.titulo}" - ${musicaData.artista} | ISRC: ${musicaData.isrc || 'N/A'}`);
           return musicaData;
         });
 
@@ -307,17 +298,11 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         // Inserir todas as músicas de uma vez (se houver)
         if (musicasParaSalvar.length > 0) {
           const resultados = await insertMultiplasMusicasIdentificadas(musicasParaSalvar);
-          console.log(`✅ ${resultados.length} músicas salvas no catálogo + detecções criadas`);
-          console.log(`⏳ Aguardando validação do usuário. Status: "Não Finalizado"`);
-        } else {
-          console.log(`⚠️ Nenhuma música encontrada.`);
         }
 
         // Manter status como "Não Finalizado" até validação do usuário
         await updateArquivoStatus(idArquivoBanco, 'Não Finalizado', duracaoTotal);
-        console.log(`📋 Status: "Não Finalizado" - Aguardando validação do usuário. Duração: ${duracaoTotal}s`);
       } catch (err) {
-        console.log('⚠️ Erro ao salvar músicas/atualizar status no banco: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
 
@@ -329,8 +314,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Erro');
-        console.log('✅ Status atualizado para "Erro" no banco');
-      } catch (updateErr) {
+        } catch (updateErr) {
         console.log('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
       }
     }
