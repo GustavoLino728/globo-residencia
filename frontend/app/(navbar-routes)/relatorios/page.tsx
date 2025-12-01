@@ -18,6 +18,7 @@ const Index = () => {
     id: string; 
     title: string;
     musicData?: any[];
+    validatedSongs?: Record<number, 'approved' | 'rejected'>;
     totalMusicas?: number; 
     musicasAprovadas?: number; 
     musicasRejeitadas?: number;
@@ -249,10 +250,17 @@ const Index = () => {
       if (response.ok) {
         const relatorio = await response.json();
 
+        // Para arquivos finalizados, todas as músicas retornadas são aprovadas
+        const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+        musicData.forEach((_, index) => {
+          validatedSongs[index] = 'approved';
+        });
+
         setModalData({
           id, 
           title,
           musicData,
+          validatedSongs,
           totalMusicas: relatorio.total_musicas,
           musicasAprovadas: relatorio.musicas_aprovadas,
           musicasRejeitadas: relatorio.musicas_rejeitadas
@@ -332,7 +340,7 @@ const Index = () => {
         fileName={modalData?.id || ""} 
         validationTitle={modalData?.title || ""}
         musicData={modalData?.musicData || []}
-        validatedSongs={{}}
+        validatedSongs={modalData?.validatedSongs || {}}
         totalMusicas={modalData?.totalMusicas}
         musicasAprovadas={modalData?.musicasAprovadas}
         musicasRejeitadas={modalData?.musicasRejeitadas}
