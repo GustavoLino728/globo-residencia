@@ -8,9 +8,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // URLs da API
 export const API_CONFIG = {
   // URL base do backend
-  BASE_URL: isDevelopment 
-    ? 'http://127.0.0.1:8000' 
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   
   // Endpoints específicos
   ENDPOINTS: {

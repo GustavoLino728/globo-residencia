@@ -59,6 +59,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         }
       });
       const auddRes = await promise;
+      console.log(`[AUDD] Resposta do segmento ${i}:`, JSON.stringify(auddRes, null, 2));
       results.push({ segment: seg, index: i, auddResponse: auddRes });
     }
 
@@ -66,6 +67,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     console.log('Concat finished: ' + combined);
 
     const found: Array<any> = [];
+    console.log(`[PROCESSAMENTO] Total de resultados AudD: ${results.length}`);
     function timecodeToSeconds(tc: string) {
       const parts = tc.split(':').map(Number).reverse();
       let s = 0;
@@ -292,8 +294,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     return reply.send(respostaTraduzida);
   } catch (err: any) {
     console.log('❌ Erro no processamento: ' + (err?.message || String(err)));
-
-    // Atualizar status para "Erro" se houver registro no banco
+    
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Erro');
@@ -301,15 +302,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         console.log('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
       }
     }
-
-    // Classificar tempo de timeout/erros de rede para retornar código 504 (gateway timeout)
-    const message = (err && err.message) ? err.message.toString().toLowerCase() : '';
-    const isTimeout = /connect timeout|connect_timeout|und_err_connect_timeout|timeout|fetch failed/i.test(message);
-
-    if (isTimeout) {
-      return reply.status(504).send({ error: 'Timeout ao conectar com serviço externo (Supabase). Verifique conexão e credenciais.' });
-    }
-
+    
     return reply.status(500).send({ error: err?.message || String(err) });
   }
 }

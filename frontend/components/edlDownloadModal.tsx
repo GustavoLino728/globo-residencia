@@ -18,6 +18,7 @@ interface MusicData {
 interface EDLDownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onDownload?: () => void;
   fileName: string;
   validationTitle: string;
   musicData?: MusicData[];
@@ -29,7 +30,8 @@ interface EDLDownloadModalProps {
 
 const EDLDownloadModal = ({ 
   isOpen, 
-  onClose, 
+  onClose,
+  onDownload,
   fileName, 
   validationTitle,
   musicData = [],
@@ -215,6 +217,11 @@ MÚSICAS REJEITADAS (Não incluídas no EDL)
       URL.revokeObjectURL(url);
       
       setIsDownloading(false);
+      
+      // Chamar callback de download se existir
+      if (onDownload) {
+        onDownload();
+      }
       
       // Fechar o modal após download
       setTimeout(() => {
