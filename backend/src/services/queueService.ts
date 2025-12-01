@@ -1,4 +1,3 @@
-// Configurar concorrência para requisições de saída ao audd.io
 let queue: any;
 
 (async () => {

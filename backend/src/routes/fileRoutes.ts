@@ -9,7 +9,9 @@ import {
   getArquivoByIdSchema,
   getRelatorioSchema,
   getMusicasSchema,
-  finalizarArquivoSchema
+  finalizarArquivoSchema,
+  getRelatorioByIdSchema,
+  getArquivosFinalizadosSchema
 } from '../schemas/fileSchemas';
 import { 
   getArquivosPorStatus, 
@@ -58,7 +60,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     schema: buscaAudDSchema
   }, audioController.buscaAudDHandler);
 
-  // Buscar TODOS os arquivos do banco
   fastify.get('/arquivos', {
     schema: getArquivosSchema
   }, async (request, reply) => {
@@ -75,7 +76,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar arquivos por status
   fastify.get('/arquivos/:status', {
     schema: getArquivosPorStatusSchema
   }, async (request, reply) => {
@@ -94,7 +94,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar arquivo específico com suas músicas
   fastify.get('/arquivo/:id', {
     schema: getArquivoByIdSchema
   }, async (request, reply) => {
@@ -112,7 +111,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
-      // Se o erro for "arquivo não encontrado", retornar 404 ao invés de 500
       if (errorMessage.includes('não encontrado') || errorMessage.includes('not found')) {
         return reply.status(404).send({ 
           error: 'Arquivo não encontrado',
@@ -127,7 +125,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar relatório EDL de um arquivo (por id_arquivo_midia)
   fastify.get('/arquivo/:id/relatorio', {
     schema: getRelatorioSchema
   }, async (request, reply) => {
@@ -156,8 +153,9 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar relatório EDL por id_relatorio
-  fastify.get('/relatorio/:id', async (request, reply) => {
+  fastify.get('/relatorio/:id', {
+    schema: getRelatorioByIdSchema
+  }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const idRelatorio = parseInt(id, 10);
     
@@ -178,8 +176,9 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar arquivos finalizados com seus id_relatorio
-  fastify.get('/arquivos-finalizados', async (request, reply) => {
+  fastify.get('/arquivos-finalizados', {
+    schema: getArquivosFinalizadosSchema
+  }, async (request, reply) => {
     try {
       const arquivos = await getArquivosFinalizados();
 
@@ -193,7 +192,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Buscar todas as músicas do banco (apenas tabela musica, sem JOIN)
   fastify.get('/musicas', {
     schema: getMusicasSchema
   }, async (request, reply) => {
@@ -210,7 +208,6 @@ async function fileRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Finalizar arquivo após validação do usuário
   fastify.post('/arquivo/:id/finalizar', {
     schema: finalizarArquivoSchema
   }, async (request, reply) => {
@@ -222,14 +219,11 @@ async function fileRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'ID de arquivo inválido' });
       }
 
-      // Verificar se o arquivo existe e finalizar
       await getArquivoById(idArquivo);
       await finalizarArquivo(idArquivo);
 
-      // Extrair contadores de validação do corpo da requisição
       const body = request.body as any;
       
-      // Se apenasStatus=true, não criar relatório EDL (auto-finalização)
       if (body?.apenasStatus) {
         return { 
           message: 'Arquivo finalizado (status atualizado)',
@@ -238,12 +232,10 @@ async function fileRoutes(fastify: FastifyInstance) {
         };
       }
       
-      // Caso contrário, criar relatório EDL com contadores
       const totalMusicas = body?.totalMusicas || 0;
       const musicasAprovadas = body?.musicasAprovadas || 0;
       const musicasRejeitadas = body?.musicasRejeitadas || 0;
 
-      // Criar registro do relatório EDL com os contadores
       try {
         const idRelatorio = await insertRelatorioEDL(idArquivo, totalMusicas, musicasAprovadas, musicasRejeitadas);
         
@@ -256,7 +248,6 @@ async function fileRoutes(fastify: FastifyInstance) {
       } catch (edlError) {
         console.error(`❌ Erro ao criar relatório EDL:`, edlError);
         
-        // Mesmo se falhar a criação do EDL, o arquivo foi finalizado
         return { 
           message: 'Arquivo finalizado com sucesso (relatório EDL não criado)',
           id_arquivo: idArquivo,

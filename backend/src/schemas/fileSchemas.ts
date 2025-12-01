@@ -2,34 +2,21 @@ import { UserSchema, ErrorSchema } from './components';
 
 export const uploadSchema = {
   tags: ['Files'],
-  description: 'Upload de arquivo MXF (requer autenticação)',  consumes: ['multipart/form-data'],
+  description: 'Upload de arquivo de mídia para processamento. O arquivo é carregado em memória, metadados são salvos no banco e o processamento de identificação musical é iniciado.',
+  consumes: ['multipart/form-data'],
   response: {
     200: {
-      description: 'Arquivo enviado com sucesso',
+      description: 'Arquivo enviado com sucesso e salvo no banco de dados',
       type: 'object',
       properties: {
-        message: { type: 'string' },
-        uploadedBy: UserSchema,
+        message: { type: 'string', example: 'Arquivo salvo com sucesso' },
         arquivo: {
           type: 'object',
           properties: {
-            id: { type: 'number' },
-            nomeOriginal: { type: 'string' },
-            tamanhoBytes: { type: 'number' },
-            formato: { type: 'string' }
-          }
-        },
-        local: {
-          type: 'object',
-          properties: {
-            path: { type: 'string' }
-          }
-        },
-        supabase: {
-          type: 'object',
-          properties: {
-            path: { type: 'string' },
-            url: { type: 'string' }
+            id: { type: 'number', description: 'ID do arquivo no banco de dados' },
+            nomeOriginal: { type: 'string', description: 'Nome original do arquivo' },
+            tamanhoBytes: { type: 'number', description: 'Tamanho do arquivo em bytes' },
+            formato: { type: 'string', description: 'Formato do arquivo (ex: mp3, wav, mxf)' }
           }
         }
       }
@@ -41,7 +28,8 @@ export const uploadSchema = {
 
 export const buscaAudDSchema = {
   tags: ['Files'],
-  description: 'Identificar músicas em arquivo de áudio (requer autenticação)',  consumes: ['multipart/form-data', 'application/octet-stream'],
+  description: 'Processa arquivo de áudio/vídeo para identificar músicas usando a API AudD. Converte para WAV, divide em segmentos, identifica músicas e salva no banco de dados.',
+  consumes: ['multipart/form-data', 'application/octet-stream'],
   response: {
     200: {
       type: 'object',
@@ -74,7 +62,8 @@ export const buscaAudDSchema = {
 
 export const getArquivosSchema = {
   tags: ['Files'],
-  description: 'Buscar todos os arquivos do banco ordenados por data de upload',  response: {
+  description: 'Lista todos os arquivos de mídia cadastrados no sistema, ordenados por data de upload decrescente. Retorna metadados completos incluindo status de processamento.',
+  response: {
     200: {
       type: 'object',
       properties: {
@@ -102,7 +91,8 @@ export const getArquivosSchema = {
 
 export const getArquivosPorStatusSchema = {
   tags: ['Files'],
-  description: 'Buscar arquivos filtrados por status',  params: {
+  description: 'Filtra arquivos por status de processamento. Útil para buscar apenas arquivos finalizados, em processamento ou com erro.',
+  params: {
     type: 'object',
     properties: {
       status: { 
@@ -141,7 +131,8 @@ export const getArquivosPorStatusSchema = {
 
 export const getArquivoByIdSchema = {
   tags: ['Files'],
-  description: 'Buscar arquivo específico com suas músicas detectadas',  params: {
+  description: 'Retorna detalhes completos de um arquivo específico incluindo todas as músicas detectadas com seus timestamps e metadados.',
+  params: {
     type: 'object',
     properties: {
       id: { type: 'string', description: 'ID do arquivo' }
@@ -193,7 +184,8 @@ export const getArquivoByIdSchema = {
 
 export const getRelatorioSchema = {
   tags: ['Reports'],
-  description: 'Buscar relatório EDL de um arquivo',  params: {
+  description: 'Busca o relatório EDL de um arquivo pelo ID do arquivo. Retorna contadores de validação (total, aprovadas, rejeitadas).',
+  params: {
     type: 'object',
     properties: {
       id: { type: 'string', description: 'ID do arquivo' }
@@ -220,7 +212,8 @@ export const getRelatorioSchema = {
 
 export const getMusicasSchema = {
   tags: ['Music'],
-  description: 'Buscar todas as músicas do catálogo',  response: {
+  description: 'Lista todas as músicas identificadas no sistema, ordenadas por data de criação. Contém o catálogo completo de músicas detectadas.',
+  response: {
     200: {
       type: 'object',
       properties: {
@@ -249,7 +242,8 @@ export const getMusicasSchema = {
 
 export const finalizarArquivoSchema = {
   tags: ['Files'],
-  description: 'Finalizar arquivo após validação. Pode apenas mudar o status (apenasStatus: true) ou criar relatório EDL com contadores.',  params: {
+  description: 'Finaliza o processamento de um arquivo. Se apenasStatus=true, apenas atualiza status. Caso contrário, cria relatório EDL com contadores de validação (total, aprovadas, rejeitadas).',
+  params: {
     type: 'object',
     properties: {
       id: { type: 'string', description: 'ID do arquivo' }
@@ -294,6 +288,61 @@ export const finalizarArquivoSchema = {
     },
     400: ErrorSchema,
     404: ErrorSchema,
+    500: ErrorSchema
+  }
+};
+
+export const getRelatorioByIdSchema = {
+  tags: ['Reports'],
+  description: 'Busca um relatório EDL específico pelo ID do relatório. Retorna todas as informações do relatório incluindo contadores de músicas totais, aprovadas e rejeitadas.',
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: {
+        type: 'number',
+        description: 'ID do relatório EDL'
+      }
+    }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        id_relatorio: { type: 'number' },
+        id_arquivo: { type: 'number' },
+        total_musicas: { type: 'number', description: 'Total de músicas detectadas' },
+        musicas_aprovadas: { type: 'number', description: 'Total de músicas aprovadas' },
+        musicas_rejeitadas: { type: 'number', description: 'Total de músicas rejeitadas' },
+        data_geracao: { type: 'string', format: 'date-time' },
+        observacoes: { type: ['string', 'null'] }
+      }
+    },
+    400: ErrorSchema,
+    404: ErrorSchema,
+    500: ErrorSchema
+  }
+};
+
+export const getArquivosFinalizadosSchema = {
+  tags: ['Files'],
+  description: 'Lista todos os arquivos com status "Finalizado" incluindo o ID do relatório EDL associado. Útil para exibir histórico de processamentos completos.',
+  response: {
+    200: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id_arquivo: { type: 'number' },
+          nome_arquivo: { type: 'string' },
+          tipo_arquivo: { type: 'string' },
+          duracao: { type: ['number', 'null'] },
+          status: { type: 'string' },
+          data_upload: { type: 'string', format: 'date-time' },
+          id_relatorio: { type: ['number', 'null'], description: 'ID do relatório EDL associado' }
+        }
+      }
+    },
     500: ErrorSchema
   }
 };

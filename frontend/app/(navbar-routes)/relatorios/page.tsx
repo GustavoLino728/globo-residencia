@@ -194,11 +194,6 @@ const Index = () => {
   const handleFinishedVideoClick = useCallback(async (id: string, title: string) => {
     // Buscar o vídeo para pegar o id_relatorio
     const video = dbVideosFinalizados.find(v => v.id === id);
-    
-    if (!video?.idRelatorio) {
-      alert('Relatório não encontrado para este arquivo');
-      return;
-    }
 
     // Extrair ID numérico do arquivo
     let numericId: number;
@@ -241,37 +236,69 @@ const Index = () => {
         }
       }
 
-      // Buscar dados do relatório EDL pelo id_relatorio
-      const response = await fetch(`http://127.0.0.1:8000/relatorio/${video.idRelatorio}`, {
-        method: 'GET',
-        mode: 'cors',
-      });
+      // Verificar se existe id_relatorio antes de buscar
+      if (video?.idRelatorio) {
+        // Buscar dados do relatório EDL pelo id_relatorio
+        const response = await fetch(`http://127.0.0.1:8000/relatorio/${video.idRelatorio}`, {
+          method: 'GET',
+          mode: 'cors',
+        });
 
-      if (response.ok) {
-        const relatorio = await response.json();
+        if (response.ok) {
+          const relatorio = await response.json();
 
-        // Para arquivos finalizados, todas as músicas retornadas são aprovadas
+          // Para arquivos finalizados, todas as músicas retornadas são aprovadas
+          const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+          musicData.forEach((_, index) => {
+            validatedSongs[index] = 'approved';
+          });
+
+          setModalData({
+            id, 
+            title,
+            musicData,
+            validatedSongs,
+            totalMusicas: relatorio.total_musicas,
+            musicasAprovadas: relatorio.musicas_aprovadas,
+            musicasRejeitadas: relatorio.musicas_rejeitadas
+          });
+        } else {
+          // Se falhar ao buscar relatório, abrir modal apenas com as músicas
+          const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+          musicData.forEach((_, index) => {
+            validatedSongs[index] = 'approved';
+          });
+          
+          setModalData({ 
+            id, 
+            title, 
+            musicData,
+            validatedSongs,
+            totalMusicas: musicData.length, 
+            musicasAprovadas: musicData.length, 
+            musicasRejeitadas: 0 
+          });
+        }
+      } else {
+        // Arquivo finalizado mas sem relatório (finalizou apenas status)
         const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
         musicData.forEach((_, index) => {
           validatedSongs[index] = 'approved';
         });
-
-        setModalData({
+        
+        setModalData({ 
           id, 
-          title,
+          title, 
           musicData,
           validatedSongs,
-          totalMusicas: relatorio.total_musicas,
-          musicasAprovadas: relatorio.musicas_aprovadas,
-          musicasRejeitadas: relatorio.musicas_rejeitadas
+          totalMusicas: musicData.length, 
+          musicasAprovadas: musicData.length, 
+          musicasRejeitadas: 0 
         });
-
-      } else {
-        // Se não houver relatório, abrir modal com dados zerados
-        setModalData({ id, title, musicData, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
       }
     } catch (error) {
-      setModalData({ id, title, totalMusicas: 0, musicasAprovadas: 0, musicasRejeitadas: 0 });
+      console.error('Erro ao buscar dados do arquivo:', error);
+      alert('Erro ao buscar dados do arquivo finalizado');
     }
   }, [dbVideosFinalizados]);
 

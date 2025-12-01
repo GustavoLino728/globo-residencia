@@ -16,7 +16,6 @@ export async function saveFile(
   const fileName = file.filename;
   const timestamp = Date.now();
 
-  // Ler arquivo diretamente para buffer em memória (não salva em disco)
   const chunks: Buffer[] = [];
   for await (const chunk of file.file) {
     chunks.push(chunk);
@@ -25,7 +24,6 @@ export async function saveFile(
   const fileSize = fileBuffer.length;
   const fileSizeMB = fileSize / (1024 * 1024);
 
-  // Limite de 500MB
   const MAX_SIZE_MB = 500;
   if (fileSizeMB > MAX_SIZE_MB) {
     throw new Error(`Arquivo muito grande (${fileSizeMB.toFixed(2)} MB). Limite: ${MAX_SIZE_MB} MB`);
@@ -34,8 +32,6 @@ export async function saveFile(
   const fileExtension = path.extname(fileName).toLowerCase().replace('.', '');
 
   try {
-    // Criar registro no banco apenas com metadados
-    // O arquivo será processado em memória e depois descartado
     let idArquivoBanco: number | undefined;
 
     try {
@@ -49,7 +45,6 @@ export async function saveFile(
       console.error('⚠️ Erro ao inserir no banco:', dbError);
     }
 
-    // Retornar dados do arquivo processado em memória
     return {
       fileBuffer,
       supabasePath: 'memory', // Não há caminho físico

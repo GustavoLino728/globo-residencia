@@ -17,7 +17,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     
     const fileInfo = await saveFile(file);
     
-    // Salvar buffer em arquivo temporário para processamento
     inputPath = await bufferToTempFile(fileInfo.fileBuffer, fileInfo.fileName);
     idArquivoBanco = fileInfo.idArquivoBanco;
     
@@ -30,12 +29,10 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   }
 
   try {
-    // Atualizar status para "Em Processamento" se houver registro no banco
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Em Processamento');
       } catch (err) {
-        // Erro ao atualizar status
       }
     }
 
@@ -68,7 +65,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     const combined = await concatWavs(segments, 'combined.wav');
     console.log('Concat finished: ' + combined);
 
-    // construir cronograma
     const found: Array<any> = [];
     function timecodeToSeconds(tc: string) {
       const parts = tc.split(':').map(Number).reverse();
@@ -137,13 +133,11 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       }
     }
 
-    // Consolidar músicas encontradas
     const musicasEncontradas: Array<{ inicioSegundos: number; fimSegundos: number; titulo?: string; artista?: string; isrc?: string; dataLancamento?: string; fonte?: any }> = [];
 
     function extractIsrc(meta: any): string | undefined {
       if (!meta) return undefined;
       
-      // Tentar múltiplas fontes de ISRC
       const possibleIsrc = 
         meta.isrc || meta.ISRC || meta.external_ids?.isrc ||
         (meta.spotify && (meta.spotify.isrc || meta.spotify.external_ids?.isrc)) ||
@@ -153,7 +147,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         (meta.result && meta.result.isrc) ||
         undefined;
       
-      // Validar formato ISRC (exemplo: USUM71703861)
       if (possibleIsrc && typeof possibleIsrc === 'string' && possibleIsrc.length >= 12) {
         console.log(`✅ ISRC encontrado: ${possibleIsrc}`);
         return possibleIsrc;
@@ -195,14 +188,12 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       musicasEncontradas.push({ inicioSegundos: inicioSec, fimSegundos: fimSec, titulo, artista, isrc, dataLancamento: dataLanc, fonte: meta });
     }
 
-    // Função para converter segundos em formato MM:SS
     function secondsToTimecode(seconds: number): string {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Ordenar por tempo de início e consolidar músicas contíguas/sobrepostas
     musicasEncontradas.sort((a, b) => a.inicioSegundos - b.inicioSegundos);
     
     const dedup: typeof musicasEncontradas = [];
@@ -213,7 +204,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         continue;
       }
       
-      // Consolidar se a música atual começa dentro ou logo após a anterior (gap de até 2 segundos)
       const gap = m.inicioSegundos - last.fimSegundos;
       const sameMusic = (
         (m.titulo && last.titulo && m.titulo.toLowerCase() === last.titulo.toLowerCase()) ||
@@ -221,18 +211,15 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       );
       
       if (gap <= 2 && sameMusic) {
-        // Consolidar: expandir o fim para cobrir a música inteira
         last.fimSegundos = Math.max(last.fimSegundos, m.fimSegundos);
         console.log(`🔗 Consolidando "${m.titulo}" - expandido até ${last.fimSegundos}s`);
         
-        // Atualizar metadados se estiverem faltando
         if (!last.titulo && m.titulo) last.titulo = m.titulo;
         if (!last.artista && m.artista) last.artista = m.artista;
         if (!last.isrc && m.isrc) last.isrc = m.isrc;
         if (!last.dataLancamento && m.dataLancamento) last.dataLancamento = m.dataLancamento;
         if (!last.fonte && m.fonte) last.fonte = m.fonte;
       } else {
-        // Nova música
         dedup.push(m);
       }
     }
@@ -271,10 +258,8 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
       configAudd: { params: { retorno: AUDD_CONFIG?.params?.return ?? '' } },
     };
 
-    // Salvar músicas identificadas no banco e atualizar status para "Finalizado"
     if (idArquivoBanco) {
       try {
-        // Preparar dados das músicas para inserção (seguindo schema do banco)
         const musicasParaSalvar: MusicaIdentificadaData[] = dedup.map((m, index) => {
           const meta = m.fonte || {};
           const musicaData = {
@@ -295,12 +280,10 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
 
         const duracaoTotal = segments.length * SEG_SECONDS;
 
-        // Inserir todas as músicas de uma vez (se houver)
         if (musicasParaSalvar.length > 0) {
           const resultados = await insertMultiplasMusicasIdentificadas(musicasParaSalvar);
         }
 
-        // Manter status como "Não Finalizado" até validação do usuário
         await updateArquivoStatus(idArquivoBanco, 'Não Finalizado', duracaoTotal);
       } catch (err) {
       }
@@ -310,7 +293,6 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
   } catch (err: any) {
     console.log('❌ Erro no processamento: ' + (err?.message || String(err)));
     
-    // Atualizar status para "Erro" se houver registro no banco
     if (idArquivoBanco) {
       try {
         await updateArquivoStatus(idArquivoBanco, 'Erro');

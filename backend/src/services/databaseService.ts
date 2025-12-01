@@ -64,7 +64,6 @@ export interface MusicaIdentificadaData {
 }
 
 export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Promise<{ idMusica: number; idDeteccao: number }> {
-  // 1. Verificar se a música já existe no catálogo (por ISRC se disponível)
   let idMusica: number;
   
   if (data.isrc) {
@@ -77,7 +76,6 @@ export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Pr
     if (musicaExistente) {
       idMusica = musicaExistente.id_musica;
     } else {
-      // Inserir nova música no catálogo
       const { data: novaMusica, error: errorMusica } = await supabase
         .from('musica')
         .insert({
@@ -98,7 +96,6 @@ export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Pr
       idMusica = novaMusica.id_musica;
     }
   } else {
-    // Sem ISRC, inserir sempre como nova música
     const { data: novaMusica, error: errorMusica } = await supabase
       .from('musica')
       .insert({
@@ -119,7 +116,6 @@ export async function insertMusicaIdentificada(data: MusicaIdentificadaData): Pr
     idMusica = novaMusica.id_musica;
   }
 
-  // 2. Criar detecção musical (relacionamento com timestamps)
   const { data: deteccao, error: errorDeteccao } = await supabase
     .from('deteccao_musical')
     .insert({
@@ -145,21 +141,18 @@ export async function insertMultiplasMusicasIdentificadas(
 
   const resultados: Array<{ idMusica: number; idDeteccao: number }> = [];
 
-  // Processar cada música individualmente para evitar duplicatas no catálogo
   for (const musica of musicas) {
     try {
       const resultado = await insertMusicaIdentificada(musica);
       resultados.push(resultado);
     } catch (error) {
       console.error('Erro ao inserir música:', error);
-      // Continuar com as outras músicas mesmo se uma falhar
     }
   }
 
   return resultados;
 }
 
-// Função para buscar músicas de um arquivo
 export async function getMusicasPorArquivo(idArquivo: number) {
   const { data, error } = await supabase
     .from('musica')
@@ -174,7 +167,6 @@ export async function getMusicasPorArquivo(idArquivo: number) {
   return data || [];
 }
 
-// Interface para tabela deteccao_musical
 export interface DeteccaoMusicalData {
   id_deteccao: number;
   id_arquivo_midia: number;
@@ -182,14 +174,12 @@ export interface DeteccaoMusicalData {
   data_geracao: string;
 }
 
-// Interface para tabela relatorio_edl
 export interface RelatorioEDLData {
   id_relatorio: number;
   id_arquivo_midia: number;
   data_geracao: string;
 }
 
-// Criar detecção musical (relacionamento entre arquivo e músicas detectadas)
 export async function insertDeteccaoMusical(
   idArquivoMidia: number,
   idMusica: number
@@ -210,8 +200,6 @@ export async function insertDeteccaoMusical(
   return result.id_deteccao;
 }
 
-// Atualizar status de validação de uma detecção musical
-// Criar relatório EDL com contadores de validação
 export async function insertRelatorioEDL(
   idArquivoMidia: number,
   totalMusicas: number,
@@ -251,7 +239,6 @@ export async function getArquivosPorStatus(status: string) {
   return data || [];
 }
 
-// Buscar relatório EDL por ID do arquivo
 export async function getRelatorioEDL(idArquivo: number) {
   const { data, error } = await supabase
     .from('relatorio_edl')
@@ -285,7 +272,6 @@ export async function getArquivoComMusicas(idArquivo: number) {
 
   console.log('✅ Arquivo encontrado:', arquivo);
 
-  // Buscar detecções com dados das músicas (JOIN)
   const { data: deteccoes, error: deteccoesError } = await supabase
     .from('deteccao_musical')
     .select(`
@@ -313,7 +299,6 @@ export async function getArquivoComMusicas(idArquivo: number) {
 
 
 
-  // Transformar dados para formato mais legível
   const musicas = (deteccoes || []).map((d: any) => ({
     id_deteccao: d.id_deteccao,
     timestamp_inicio_seg: d.timestamp_inicio_seg,
@@ -327,7 +312,6 @@ export async function getArquivoComMusicas(idArquivo: number) {
   };
 }
 
-// Buscar todos os arquivos
 export async function getAllArquivos() {
   const { data: arquivos, error } = await supabase
     .from('arquivo_midia')
@@ -341,7 +325,6 @@ export async function getAllArquivos() {
   return arquivos || [];
 }
 
-// Buscar relatório EDL por id_relatorio
 export async function getRelatorioEDLById(idRelatorio: number) {
   const { data: relatorio, error } = await supabase
     .from('relatorio_edl')
@@ -356,7 +339,6 @@ export async function getRelatorioEDLById(idRelatorio: number) {
   return relatorio;
 }
 
-// Buscar arquivos finalizados com id_relatorio
 export async function getArquivosFinalizados() {
   const { data: arquivos, error: arquivosError } = await supabase
     .from('arquivo_midia')
@@ -405,7 +387,6 @@ export async function getArquivosFinalizados() {
   return arquivosComRelatorio;
 }
 
-// Buscar todas as músicas
 export async function getAllMusicas() {
   const { data: musicas, error } = await supabase
     .from('musica')
@@ -419,7 +400,6 @@ export async function getAllMusicas() {
   return musicas || [];
 }
 
-// Buscar arquivo por ID
 export async function getArquivoById(idArquivo: number) {
   const { data: arquivo, error } = await supabase
     .from('arquivo_midia')
@@ -434,7 +414,6 @@ export async function getArquivoById(idArquivo: number) {
   return arquivo;
 }
 
-// Finalizar arquivo (atualizar status)
 export async function finalizarArquivo(idArquivo: number) {
   const { error } = await supabase
     .from('arquivo_midia')
