@@ -18,7 +18,7 @@ export default function WatchFolderSimulator() {
 
       // ❌ removido: não envia arquivos ao selecionar
     } catch (err) {
-      console.error("Erro ao selecionar pasta:", err);
+      // Erro ao selecionar pasta
     }
   };
 
@@ -185,3 +185,4 @@ export default function WatchFolderSimulator() {
     </div>
   );
 }
+

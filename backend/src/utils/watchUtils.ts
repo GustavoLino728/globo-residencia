@@ -5,6 +5,10 @@ import { uploadFileToBackend } from "../services/uploaderService";
 
 let watcher: any | null = null;
 
+// 1. MUDANÇA CRÍTICA: O Set deve ficar FORA da função para persistir na memória
+// enquanto o servidor estiver rodando.
+const processed = new Set<string>();
+
 export async function startWatch(folderPath: string) {
   console.log("🔍 Iniciando Watch Folder:", folderPath);
 
@@ -12,14 +16,12 @@ export async function startWatch(folderPath: string) {
   if (watcher) {
     try {
       await watcher.close();
+      console.log("🛑 Watcher anterior fechado.");
     } catch (err) {
       console.warn("Erro ao fechar watcher anterior:", err);
     }
     watcher = null;
   }
-
-  // Conjunto para evitar loop e duplicações
-  const processed = new Set<string>();
 
   // Importação dinâmica do chokidar
   const chokidarModule = await import("chokidar");
@@ -27,10 +29,10 @@ export async function startWatch(folderPath: string) {
 
   watcher = chokidar.watch(folderPath, {
     persistent: true,
-    ignoreInitial: true,
+    ignoreInitial: true, // Ignora arquivos que já estavam lá ao iniciar
 
     awaitWriteFinish: {
-      stabilityThreshold: 800,
+      stabilityThreshold: 2000, // Aumentei para 2s para garantir que arquivos grandes terminaram de copiar
       pollInterval: 100,
     },
 
@@ -43,22 +45,40 @@ export async function startWatch(folderPath: string) {
         filePath.includes("fastify") ||
         filePath.endsWith(".tmp") ||
         filePath.endsWith(".part") ||
-        filePath.endsWith(".partial")
+        filePath.endsWith(".partial") ||
+        filePath.includes("node_modules") ||
+        filePath.includes(".git")
       );
     },
   });
 
   watcher.on("add", async (filePath: string) => {
-    console.log("📄 Novo arquivo detectado:", filePath);
+    console.log("📄 Novo arquivo detectado pelo Chokidar:", filePath);
 
-    // Evita enviar o mesmo arquivo repetidamente
+    // 2. Verificação de Duplicidade
     if (processed.has(filePath)) {
-      console.log("⏩ Já processado, ignorando:", filePath);
+      console.log("⏩ Arquivo já está na lista de processados, ignorando:", filePath);
       return;
     }
 
+    // 3. Marca IMEDIATAMENTE antes de começar o upload
     processed.add(filePath);
 
-    await uploadFileToBackend(filePath);
+    try {
+        // No backend, passamos o CAMINHO (string), não o objeto File
+        await uploadFileToBackend(filePath);
+        console.log("✅ Upload concluído com sucesso:", filePath);
+        
+    } catch (error) {
+        console.error("❌ Falha no upload:", filePath, error);
+        
+        // 4. MUDANÇA IMPORTANTE: Se falhar, removemos da lista
+        // Isso permite que, se você mover o arquivo ou salvar de novo, ele tente outra vez.
+        processed.delete(filePath);
+    }
+  });
+
+  watcher.on("error", (error: any) => {
+    console.error("❌ Erro no Chokidar:", error);
   });
 }

@@ -92,6 +92,3 @@ Próximos passos recomendados
 - Adicionar rota GET para baixar `combined.wav`
 - Tornar `segundosPorSegmento` configurável por variável de ambiente
 - Adicionar testes automatizados (jest/mocha)
-
----
-Se quiser, eu atualizo o README com exemplos de resposta ou adiciono instruções para configurar a variável de ambiente do token.

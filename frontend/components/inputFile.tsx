@@ -27,7 +27,7 @@ export default function MediaUpload() {
     // Verificar tamanho do arquivo (limite: 500MB)
     const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB em bytes
     if (file.size > MAX_FILE_SIZE) {
-      alert(`❌ Arquivo muito grande!\n\nTamanho: ${(file.size / (1024 * 1024)).toFixed(2)} MB\nLimite: 500 MB\n\nPor favor, escolha um arquivo menor ou comprima o vídeo.`);
+      alert(`Arquivo muito grande!\n\nTamanho: ${(file.size / (1024 * 1024)).toFixed(2)} MB\nLimite: 500 MB\n\nPor favor, escolha um arquivo menor ou comprima o vídeo.`);
       return;
     }
     
@@ -49,7 +49,7 @@ export default function MediaUpload() {
       setMediaURL(newUrl);
       setFileType(file.type || 'video/mxf');
     } else {
-      alert("Por favor, envie um arquivo de áudio ou vídeo válido 🎵🎬\n\nFormatos aceitos: MP4, MXF, MOV, AVI, MKV, WAV, MP3, AAC, FLAC");
+      alert("Por favor, envie um arquivo de áudio ou vídeo válido\n\nFormatos aceitos: MP4, MXF, MOV, AVI, MKV, WAV, MP3, AAC, FLAC");
     }
   };
 
@@ -85,7 +85,7 @@ export default function MediaUpload() {
       const fileSizeMB = file.size / (1024 * 1024);
       
       if (file.size > MAX_FILE_SIZE) {
-        alert(`❌ Arquivo muito grande!\n\n` +
+        alert(`Arquivo muito grande!\n\n` +
               `Tamanho: ${fileSizeMB.toFixed(2)} MB\n` +
               `Limite máximo: 500 MB\n\n` +
               `Por favor, comprima o vídeo antes de fazer upload.\n` +
@@ -94,23 +94,12 @@ export default function MediaUpload() {
       }
       
       // Verificar se o backend está disponível
-      console.log("Verificando conexão com o backend...");
       const healthCheck = await checkBackendHealth();
       
       if (!healthCheck.ok) {
         alert(`Erro de conexão: ${healthCheck.message}\n\nVerifique se o backend está rodando em ${API_CONFIG.BASE_URL}`);
         return;
       }
-      
-      console.log("Backend está disponível:", healthCheck.message);
-      
-      // Log detalhado sobre o arquivo
-      console.log("Enviando arquivo:", {
-        nome: file.name, 
-        tamanho: fileSizeMB.toFixed(2) + " MB", 
-        tipo: file.type,
-        ultimaModificacao: new Date(file.lastModified).toLocaleString()
-      });
       
       // Ativar a tela de loading APENAS após todas as verificações
       setIsLoading(true);
@@ -119,11 +108,8 @@ export default function MediaUpload() {
       const formData = new FormData();
       formData.append("file", file, file.name);
       
-      console.log("Iniciando envio do arquivo...");
-      
       // Usar a URL configurada
       const apiUrl = getApiUrl('BUSCA_AUDD');
-      console.log(`Enviando para ${apiUrl}`);
       
       // Configuração completa e explícita do fetch
       // Não usar timeout para arquivos grandes - deixar o backend controlar
@@ -140,20 +126,11 @@ export default function MediaUpload() {
       
       clearTimeout(timeoutId);
       
-      // Log detalhado da resposta
-      console.log("Resposta recebida:", {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText
-      });
-      
       // Verificar se a resposta foi bem-sucedida
       if (!response.ok) {
-        console.error("Resposta não ok:", response.status, response.statusText);
         let errorText = "";
         try {
           const errorData = await response.text();
-          console.error("Detalhes do erro:", errorData);
           errorText = errorData;
         } catch (e) {
           errorText = "Erro desconhecido";
@@ -161,51 +138,37 @@ export default function MediaUpload() {
         throw new Error(`Erro no upload (${response.status}): ${errorText}`);
       }
       
-      console.log("Resposta recebida, processando JSON...");
-      
       // Processar a resposta
       const data = await response.json();
-      console.log("Resposta completa do servidor:", data);
+
       
       // Usar o ID do banco de dados se disponível, senão gerar ID local
       const uploadId = data.arquivo?.id ? `db-${data.arquivo.id}` : `upload-${Date.now()}`;
+
       
       // Armazenar a resposta no localStorage com ID único
-      localStorage.setItem("uploadResults", JSON.stringify(data));
-      localStorage.setItem("lastUploadId", uploadId);
-      localStorage.setItem("uploadFileName", file.name);
+      // Limpar localStorage anterior
+      localStorage.removeItem("uploadResults");
+      localStorage.removeItem("lastUploadId");
+      localStorage.removeItem("uploadFileName");
+      localStorage.removeItem("uploadMediaURL");
+      localStorage.removeItem("uploadFileType");
+      localStorage.removeItem("uploadSupabaseURL");
+      localStorage.removeItem("uploadDatabaseId");
       
-      // Armazenar URL do vídeo/áudio para uso na validação
-      if (mediaURL) {
-        localStorage.setItem("uploadMediaURL", mediaURL);
-        localStorage.setItem("uploadFileType", fileType || file.type || '');
-      }
-      
-      // Armazenar URL do Supabase se disponível
-      if (data.supabase?.url) {
-        localStorage.setItem("uploadSupabaseURL", data.supabase.url);
-      }
-      
-      // Armazenar ID do banco se disponível
+
       if (data.arquivo?.id) {
-        localStorage.setItem("uploadDatabaseId", data.arquivo.id.toString());
-        console.log(`✅ Arquivo salvo no banco com ID: ${data.arquivo.id}`);
+
       }
-      
-      console.log("Processamento do backend concluído!");
-      console.log(`Músicas encontradas: ${data.quantidadeMusicasEncontradas || 0}`);
       
       // Pequeno delay para suavidade visual antes do redirecionamento
       setTimeout(() => {
-        console.log("Iniciando redirecionamento...");
-        
-        // Redirecionar diretamente para a página de validação do arquivo
-        console.log(`Redirecionando para validação do arquivo: ${uploadId}`);
-        router.push(`/relatorios/validacao/${uploadId}?title=${encodeURIComponent(file.name)}`);
+        // Redirecionar para a página de relatórios
+
+        router.push('/relatorios');
       }, 1500);
       
     } catch (error: any) {
-      console.error("Erro ao fazer upload:", error);
       setIsLoading(false);
       
       // Construir mensagem de erro detalhada

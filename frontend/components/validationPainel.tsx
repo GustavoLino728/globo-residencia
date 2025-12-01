@@ -24,6 +24,7 @@ interface ValidationPanelProps {
   handleApprove: () => void;
   handleReject: () => void;
   onGenerateEdl: () => void; // A função para abrir o modal
+  onFinalizar?: () => void; // Nova função para finalizar o arquivo (opcional)
 }
 
 // O componente em si
@@ -39,6 +40,7 @@ export default function ValidationPanel({
   handleApprove,
   handleReject,
   onGenerateEdl,
+  onFinalizar,
 }: ValidationPanelProps) {
 
   // O componente NÃO precisa de useState, useEffect, ou useParams!
@@ -90,8 +92,8 @@ export default function ValidationPanel({
           <Button
             color="primary"
             variant="solid"
-            onPress={onGenerateEdl} // Usa a função passada via props
-            className="w-36 h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            onPress={onFinalizar || onGenerateEdl}
+            className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
           >
             Gerar EDL
           </Button>
