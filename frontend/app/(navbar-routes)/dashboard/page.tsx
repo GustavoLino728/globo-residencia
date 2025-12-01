@@ -15,6 +15,10 @@ interface MusicData {
   isrc: string;
   album?: string;
   genero?: string;
+    efeitoSonoro: string;
+    tempoInicio: string;
+    tempoFim: string;
+    tempoTotal: string;
 }
 
 export default function DashboardPage() {
@@ -57,6 +61,10 @@ export default function DashboardPage() {
                     interprete: m.artista || 'Desconhecido',
                     gravadora: m.gravadora || 'Desconhecida',
                     isrc: m.isrc || '',
+                    efeitoSonoro: m.efeitoSonoro || '',
+                    tempoInicio: m.tempoInicio || '',
+                    tempoFim: m.tempoFim || '',
+                    tempoTotal: m.tempoTotal || '0:00',
                     album: m.album,
                     genero: m.genero
                 }));

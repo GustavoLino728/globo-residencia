@@ -290,7 +290,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
     return reply.send(respostaTraduzida);
   } catch (err: any) {
     console.log('❌ Erro no processamento: ' + (err?.message || String(err)));
-    
+
     // Atualizar status para "Erro" se houver registro no banco
     if (idArquivoBanco) {
       try {
@@ -300,7 +300,15 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
         console.log('⚠️ Erro ao atualizar status de erro no banco: ' + (updateErr instanceof Error ? updateErr.message : String(updateErr)));
       }
     }
-    
+
+    // Classificar tempo de timeout/erros de rede para retornar código 504 (gateway timeout)
+    const message = (err && err.message) ? err.message.toString().toLowerCase() : '';
+    const isTimeout = /connect timeout|connect_timeout|und_err_connect_timeout|timeout|fetch failed/i.test(message);
+
+    if (isTimeout) {
+      return reply.status(504).send({ error: 'Timeout ao conectar com serviço externo (Supabase). Verifique conexão e credenciais.' });
+    }
+
     return reply.status(500).send({ error: err?.message || String(err) });
   }
 }

@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-
+import uploadRoutes from "./routes/uploadRoutes";
 import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
 import cors from '@fastify/cors';
@@ -8,6 +8,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import fileRoutes from './routes/fileRoutes';
 import authRoutes from './routes/authRoutes';
+import watchRoutes from "./routes/watchRoutes";
 
 const fastify = Fastify({ logger: true, bodyLimit: 1024 * 1024 * 1024 });
 
@@ -82,13 +83,15 @@ fastify.get('/', async (request, reply) => {
   return { 
     status: 'ok', 
     message: 'Servidor backend funcionando',
-    docs: 'http://localhost:8000/docs'
+    docs: 'http://localhost:3000/docs'
   };
 });
 
 fastify.register(authRoutes);
 fastify.register(fileRoutes);
-
+// uploadRoutes is an Express Router; cast to any to satisfy Fastify's register typing
+fastify.register(uploadRoutes, { prefix: "/api/upload" });
+fastify.register(watchRoutes, { prefix: "/api/watch" });
 fastify.listen({ port: 8000 }, (err, address) => {
   if (err) {
     fastify.log.error(err);

@@ -27,19 +27,26 @@
 	"homepage": "https://github.com/GustavoLino728/globo-residencia#readme",
 	"dependencies": {
 		"@fastify/cors": "^11.1.0",
+		"@fastify/express": "^4.0.2",
 		"@fastify/multipart": "^9.2.1",
 		"@fastify/swagger": "^9.5.2",
 		"@fastify/swagger-ui": "^5.2.3",
 		"@supabase/supabase-js": "^2.80.0",
 		"axios": "^1.6.0",
+		"chokidar": "^5.0.0",
 		"dotenv": "^17.2.3",
+		"express": "^5.1.0",
 		"fastify": "^5.6.1",
 		"fluent-ffmpeg": "^2.1.2",
 		"form-data": "^4.0.0",
+		"multer": "^2.0.2",
 		"p-queue": "^7.4.0"
 	},
 	"devDependencies": {
+		"@types/express": "^5.0.5",
+		"@types/multer": "^2.0.0",
 		"@types/node": "^24.6.2",
+		"@types/node-fetch": "^2.6.13",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.3"
 	}
