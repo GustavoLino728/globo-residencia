@@ -18,6 +18,7 @@ import {
   getArquivoComMusicas, 
   insertRelatorioEDL,
   getAllArquivos,
+  getRelatorioEDL,
   getRelatorioEDLById,
   getArquivosFinalizados,
   getAllMusicas,
@@ -136,13 +137,13 @@ async function fileRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'ID de arquivo inválido' });
       }
 
-      const { getRelatorioEDL } = await import('../services/databaseService.js');
       const relatorio = await getRelatorioEDL(idArquivo);
       
       if (!relatorio) {
         return reply.status(404).send({ error: 'Relatório EDL não encontrado' });
       }
       
+      console.log(`Relatório encontrado:`, relatorio);
       return relatorio;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -169,6 +170,14 @@ async function fileRoutes(fastify: FastifyInstance) {
       return relatorio;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      if (errorMessage.includes('não encontrado')) {
+        return reply.status(404).send({ 
+          error: 'Relatório EDL não encontrado',
+          details: errorMessage
+        });
+      }
+      
       return reply.status(500).send({ 
         error: 'Erro ao buscar relatório EDL',
         details: errorMessage

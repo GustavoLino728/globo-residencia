@@ -300,7 +300,7 @@ export const getRelatorioByIdSchema = {
     required: ['id'],
     properties: {
       id: {
-        type: 'number',
+        type: 'string',
         description: 'ID do relatório EDL'
       }
     }
@@ -308,9 +308,10 @@ export const getRelatorioByIdSchema = {
   response: {
     200: {
       type: 'object',
+      additionalProperties: true,
       properties: {
         id_relatorio: { type: 'number' },
-        id_arquivo: { type: 'number' },
+        id_arquivo_midia: { type: 'number' },
         total_musicas: { type: 'number', description: 'Total de músicas detectadas' },
         musicas_aprovadas: { type: 'number', description: 'Total de músicas aprovadas' },
         musicas_rejeitadas: { type: 'number', description: 'Total de músicas rejeitadas' },

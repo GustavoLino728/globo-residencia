@@ -353,8 +353,12 @@ export async function getRelatorioEDLById(idRelatorio: number) {
     .eq('id_relatorio', idRelatorio)
     .single();
   
-  if (error || !relatorio) {
-    throw new Error('Relatório EDL não encontrado');
+  if (error) {
+    throw new Error(`Erro ao buscar relatório: ${error.message}`);
+  }
+  
+  if (!relatorio) {
+    throw new Error(`Relatório EDL com ID ${idRelatorio} não encontrado`);
   }
   
   return relatorio;
