@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { listDirectoryFiles, getNewFiles, uploadFileToBackend, processedFiles} from "./watchUtils";
 
-const MAX_CONCURRENT = 2; // Processa no máximo 2 arquivos simultaneamente
+const MAX_CONCURRENT = 2;
 
 export default function WatchFolderSimulator() {
   const router = useRouter();
@@ -50,7 +50,6 @@ export default function WatchFolderSimulator() {
       return;
     }
 
-    // Marcar como processado IMEDIATAMENTE para evitar duplicação
     processedFiles.add(fileName);
     
     try {
@@ -71,7 +70,6 @@ export default function WatchFolderSimulator() {
       });
     } catch (e) {
       console.error("❌ Falha no processamento:", e);
-      // Remove do Set para permitir nova tentativa
       processedFiles.delete(fileName);
       setProcessingFiles(prev => {
         const newSet = new Set(prev);
@@ -80,7 +78,6 @@ export default function WatchFolderSimulator() {
       });
     } finally {
       processingCountRef.current--;
-      // Aguardar um pouco antes de processar o próximo
       setTimeout(() => processNextInQueue(), 100);
     }
   };
@@ -93,10 +90,8 @@ export default function WatchFolderSimulator() {
 
       const [nextFile, ...remainingQueue] = currentQueue;
       
-      // Verificar novamente se já foi processado
       if (processedFiles.has(nextFile)) {
         console.log(`⏩ Removendo da fila (já processado): ${nextFile}`);
-        // Continuar para o próximo
         if (remainingQueue.length > 0) {
           setTimeout(() => processNextInQueue(), 10);
         }
@@ -124,7 +119,6 @@ export default function WatchFolderSimulator() {
       console.log(`📋 Adicionando à fila: ${fileName}`);
       const newQueue = [...prev, fileName];
       
-      // Processar imediatamente se houver capacidade
       if (processingCountRef.current < MAX_CONCURRENT) {
         setTimeout(() => processNextInQueue(), 10);
       }

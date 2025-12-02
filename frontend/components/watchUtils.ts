@@ -14,14 +14,10 @@ export async function listDirectoryFiles(dirHandle: FileSystemDirectoryHandle) {
 
 
 export function getNewFiles(previousList: string[], currentList: string[]) {
-  return currentList.filter((name) => {
-    // Remove a verificação do processedFiles daqui. 
-    // O WatchFolderSimulator vai usar o Set APÓS chamar esta função.
-    return !previousList.includes(name); 
-  });
+  return currentList.filter((name) => {
+    return !previousList.includes(name); 
+  });
 }
-
-
 export async function uploadFileToBackend(file: File) {
   if (!file) {
     throw new Error("Tentativa de envio de arquivo inválido/nulo");
