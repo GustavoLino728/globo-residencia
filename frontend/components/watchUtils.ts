@@ -23,28 +23,23 @@ export function getNewFiles(previousList: string[], currentList: string[]) {
 
 
 export async function uploadFileToBackend(file: File) {
-  // 1. Validação básica antes de enviar
   if (!file) {
     throw new Error("Tentativa de envio de arquivo inválido/nulo");
   }
 
   const form = new FormData();
-  // 'file' deve corresponder ao que o Fastify espera no backend (request.file())
   form.append("file", file); 
 
-  console.log(`🚀 Iniciando upload de: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+  console.log(`🚀 Iniciando processamento de: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
   try {
-    // ⚠️ ATENÇÃO: Verifique se a porta 8000 é a mesma que aparece no console do seu Backend
-    // Se estiver usando variaveis de ambiente, certifique-se que elas estão carregadas
-    // Mude de 'localhost' para '127.0.0.1'
-    const BACKEND_URL = "http://127.0.0.1:3001/api/upload";
+    const BACKEND_URL = getApiUrl('BUSCA_AUDD');
 
     const res = await fetch(BACKEND_URL, {
       method: "POST",
       body: form,
-      // ⛔ IMPORTANTE: Não adicione cabeçalho 'Content-Type': 'multipart/form-data' manualmente!
-      // O navegador faz isso automaticamente e adiciona o 'boundary' necessário.
+      mode: API_CONFIG.CORS.MODE,
+      cache: "no-cache",
     });
 
     if (!res.ok) {
@@ -53,12 +48,12 @@ export async function uploadFileToBackend(file: File) {
     }
 
     const data = await res.json();
-    console.log("✅ Upload concluído:", data);
+    console.log("✅ Processamento concluído:", data);
     return data;
 
   } catch (error) {
-    console.error("❌ Falha na requisição de upload:", error);
-    throw error; // Relança o erro para o startWatching lidar (e remover do processedFiles)
+    console.error("❌ Falha no processamento:", error);
+    throw error;
   }
 }
 
