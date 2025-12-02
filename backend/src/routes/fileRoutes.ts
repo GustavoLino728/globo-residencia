@@ -182,7 +182,7 @@ async function fileRoutes(fastify: FastifyInstance) {
     try {
       const arquivos = await getArquivosFinalizados();
 
-      return { arquivos };
+      return arquivos;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       return reply.status(500).send({ 

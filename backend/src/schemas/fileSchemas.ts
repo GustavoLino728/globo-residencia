@@ -332,6 +332,7 @@ export const getArquivosFinalizadosSchema = {
       type: 'array',
       items: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           id_arquivo: { type: 'number' },
           nome_arquivo: { type: 'string' },
