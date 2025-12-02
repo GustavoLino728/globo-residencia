@@ -26,6 +26,7 @@ interface EDLDownloadModalProps {
   totalMusicas?: number;
   musicasAprovadas?: number;
   musicasRejeitadas?: number;
+  duracaoArquivo?: number;
 }
 
 const EDLDownloadModal = ({ 
@@ -38,7 +39,8 @@ const EDLDownloadModal = ({
   validatedSongs = {},
   totalMusicas,
   musicasAprovadas,
-  musicasRejeitadas
+  musicasRejeitadas,
+  duracaoArquivo
 }: EDLDownloadModalProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -63,18 +65,23 @@ const EDLDownloadModal = ({
     // Calcular duração total do arquivo
     let totalSeconds = 0;
     
-    // Tentar pegar a duração total dos dados do upload no localStorage
-    try {
-      const uploadResults = localStorage.getItem('uploadResults');
-      if (uploadResults) {
-        const data = JSON.parse(uploadResults);
-        // Calcular baseado nos dados completos: segundosPorSegmento * quantidadeSegmentos
-        if (data.segundosPorSegmento && data.quantidadeSegmentos) {
-          totalSeconds = data.segundosPorSegmento * data.quantidadeSegmentos;
+    // Se duracaoArquivo foi passada (arquivo do banco), usar ela
+    if (duracaoArquivo && duracaoArquivo > 0) {
+      totalSeconds = duracaoArquivo;
+    } else {
+      // Caso contrário, tentar pegar do localStorage (upload novo)
+      try {
+        const uploadResults = localStorage.getItem('uploadResults');
+        if (uploadResults) {
+          const data = JSON.parse(uploadResults);
+          // Calcular baseado nos dados completos: segundosPorSegmento * quantidadeSegmentos
+          if (data.segundosPorSegmento && data.quantidadeSegmentos) {
+            totalSeconds = data.segundosPorSegmento * data.quantidadeSegmentos;
+          }
         }
+      } catch (e) {
+        // Erro ao buscar localStorage
       }
-    } catch (e) {
-      // Erro ao buscar localStorage
     }
     
     // Se não conseguiu do localStorage, calcular pelo maior tempoFim das músicas

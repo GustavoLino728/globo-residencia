@@ -22,6 +22,7 @@ const Index = () => {
     totalMusicas?: number; 
     musicasAprovadas?: number; 
     musicasRejeitadas?: number;
+    duracaoArquivo?: number;
   } | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<VideoInfo[]>([]);
   const [dbVideosNaoFinalizados, setDbVideosNaoFinalizados] = useState<VideoInfo[]>([]);
@@ -216,9 +217,15 @@ const Index = () => {
       });
 
       let musicData: any[] = [];
+      let duracaoArquivo = 0;
 
       if (arquivoResponse.ok) {
         const arquivoData = await arquivoResponse.json();
+        
+        // Pegar duração do arquivo
+        if (arquivoData.arquivo && arquivoData.arquivo.duracao_segundos) {
+          duracaoArquivo = arquivoData.arquivo.duracao_segundos;
+        }
         
         // Formatar músicas para o modal
         if (arquivoData.musicas && arquivoData.musicas.length > 0) {
@@ -260,7 +267,8 @@ const Index = () => {
             validatedSongs,
             totalMusicas: relatorio.total_musicas,
             musicasAprovadas: relatorio.musicas_aprovadas,
-            musicasRejeitadas: relatorio.musicas_rejeitadas
+            musicasRejeitadas: relatorio.musicas_rejeitadas,
+            duracaoArquivo
           });
         } else {
           // Se falhar ao buscar relatório, abrir modal apenas com as músicas
@@ -276,7 +284,8 @@ const Index = () => {
             validatedSongs,
             totalMusicas: musicData.length, 
             musicasAprovadas: musicData.length, 
-            musicasRejeitadas: 0 
+            musicasRejeitadas: 0,
+            duracaoArquivo
           });
         }
       } else {
@@ -293,7 +302,8 @@ const Index = () => {
           validatedSongs,
           totalMusicas: musicData.length, 
           musicasAprovadas: musicData.length, 
-          musicasRejeitadas: 0 
+          musicasRejeitadas: 0,
+          duracaoArquivo
         });
       }
     } catch (error) {
@@ -371,6 +381,7 @@ const Index = () => {
         totalMusicas={modalData?.totalMusicas}
         musicasAprovadas={modalData?.musicasAprovadas}
         musicasRejeitadas={modalData?.musicasRejeitadas}
+        duracaoArquivo={modalData?.duracaoArquivo}
       />
     </PageLayout>
   );
