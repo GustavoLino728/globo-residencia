@@ -24,7 +24,6 @@ export const ContagiaLogo = () => {
 export const Navbar = () => {
   const pathname = usePathname();
   
-  // Verificar se está na página de validação para sinalizar Relatórios
   const isValidationPage = pathname.startsWith("/relatorios/validacao");
 
   return (

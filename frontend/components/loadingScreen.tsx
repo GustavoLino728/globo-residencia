@@ -8,7 +8,6 @@ interface LoadingScreenProps {
 }
 
 const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
-  // Definir os passos do processo
   const steps = [
     "Enviando arquivo...",
     "Processando mídia...",
@@ -18,15 +17,12 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
     "Finalizando análise..."
   ];
 
-  // Estado para controlar o progresso e o passo atual
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Refs para controlar o fluxo
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const stepIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Função para limpar todos os intervalos
   const clearAllIntervals = () => {
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
@@ -38,13 +34,10 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
     }
   };
 
-  // Efeito para iniciar a simulação de progresso
   useEffect(() => {
-    // Forçar explicitamente a 0%
     setProgress(0);
     setCurrentStep(0);
     
-    // Criar intervalo para aumentar o progresso gradualmente com mais logs
     progressIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
         const newProgress = prev >= 95 
@@ -55,7 +48,6 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
       });
     }, 250);
     
-    // Criar intervalo para avançar os passos do processo
     stepIntervalRef.current = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= steps.length - 1) return steps.length - 1;
@@ -63,11 +55,10 @@ const LoadingScreen = ({ fileName }: LoadingScreenProps) => {
       });
     }, 2000);
     
-    // Limpeza ao desmontar o componente
     return () => {
       clearAllIntervals();
     };
-  }, []); // Executar apenas uma vez na montagem
+  }, []); 
 
   return (
     <div 

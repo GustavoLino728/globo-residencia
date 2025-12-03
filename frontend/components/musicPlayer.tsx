@@ -32,7 +32,6 @@ export default function MusicPlayer({ videoURL, tempoInicio, tempoFim, musica, a
   const endSeconds = timeToSeconds(tempoFim);
   const segmentDuration = endSeconds - startSeconds;
 
-  // Reset quando a música mudar
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -44,7 +43,6 @@ export default function MusicPlayer({ videoURL, tempoInicio, tempoFim, musica, a
     }
   }, [musica, artista, startSeconds]);
 
-  // Obter URL do vídeo/áudio
   const mediaURL = videoURL || localStorage.getItem("uploadMediaURL") || localStorage.getItem("uploadSupabaseURL");
 
   useEffect(() => {

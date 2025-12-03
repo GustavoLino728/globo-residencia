@@ -230,7 +230,6 @@ export default function ValidandoPage() {
   
   const handleAutoFinalizar = async () => {
     try {
-      // Extrair ID numérico
       let idArquivo: number | null = null;
       
       if (id.startsWith('db-')) {

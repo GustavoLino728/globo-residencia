@@ -11,7 +11,6 @@ export default function ClientOnly({ children, fallback = null }: ClientOnlyProp
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    // Usar setTimeout com delay mínimo para melhor performance
     const timer = setTimeout(() => {
       setHasMounted(true);
     }, 0);

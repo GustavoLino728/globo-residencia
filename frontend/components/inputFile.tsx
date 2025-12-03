@@ -38,7 +38,6 @@ export default function MediaUpload() {
     
     if (file && isValidFile) {
       setFileName(file.name);
-      // Revoga URL anterior se existir
       if (urlRef.current) {
         URL.revokeObjectURL(urlRef.current);
       }

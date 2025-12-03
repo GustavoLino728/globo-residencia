@@ -13,7 +13,6 @@ interface ChartData {
 }
 
 const MusicCharts = ({ musicData }: MusicChartsProps) => {
-  // Processar dados para gráfico de gravadoras
   const gravadoraMap = new Map<string, number>();
   musicData.forEach(music => {
     const gravadora = music.gravadora || 'Desconhecida';
@@ -157,10 +156,9 @@ function getEfeitosSonorosData(musicData: MusicInfo[]): ChartData[] {
       color: getColorByIndex(index)
     }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 9); // Top 9 efeitos
+    .slice(0, 9);
 }
 
-// Função para obter cores baseadas no índice
 function getColorByIndex(index: number): string {
   const colors = [
     '#8B5CF6', // purple-500

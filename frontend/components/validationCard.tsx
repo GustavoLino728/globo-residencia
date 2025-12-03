@@ -19,7 +19,6 @@ interface MusicInfoCardProps {
 
 
 const MusicInfoCard = ({ info, validationStatus }: MusicInfoCardProps) => {
-  // Verificação de segurança para evitar erros
   if (!info) {
     return (
       <div className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl">

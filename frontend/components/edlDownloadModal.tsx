@@ -44,47 +44,38 @@ const EDLDownloadModal = ({
 }: EDLDownloadModalProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Calcular estatísticas
   const stats = useMemo(() => {
     let approved: number;
     let rejected: number;
     let total: number;
     
-    // Se os contadores foram passados como props (vindo do relatório EDL), usar eles
     if (totalMusicas !== undefined && musicasAprovadas !== undefined && musicasRejeitadas !== undefined) {
       approved = musicasAprovadas;
       rejected = musicasRejeitadas;
       total = totalMusicas;
     } else {
-      // Caso contrário, calcular dos dados locais
       approved = Object.values(validatedSongs).filter(status => status === 'approved').length;
       rejected = Object.values(validatedSongs).filter(status => status === 'rejected').length;
       total = musicData.length;
     }
     
-    // Calcular duração total do arquivo
     let totalSeconds = 0;
     
-    // Se duracaoArquivo foi passada (arquivo do banco), usar ela
     if (duracaoArquivo && duracaoArquivo > 0) {
       totalSeconds = duracaoArquivo;
     } else {
-      // Caso contrário, tentar pegar do localStorage (upload novo)
       try {
         const uploadResults = localStorage.getItem('uploadResults');
         if (uploadResults) {
           const data = JSON.parse(uploadResults);
-          // Calcular baseado nos dados completos: segundosPorSegmento * quantidadeSegmentos
           if (data.segundosPorSegmento && data.quantidadeSegmentos) {
             totalSeconds = data.segundosPorSegmento * data.quantidadeSegmentos;
           }
         }
       } catch (e) {
-        // Erro ao buscar localStorage
       }
     }
     
-    // Se não conseguiu do localStorage, calcular pelo maior tempoFim das músicas
     if (totalSeconds === 0 && musicData.length > 0) {
       musicData.forEach((music) => {
         if (music.tempoFim && music.tempoFim !== '--:--' && music.tempoFim !== '00:00') {
@@ -101,7 +92,6 @@ const EDLDownloadModal = ({
               }
             }
           } catch (e) {
-            // Erro ao processar tempo
           }
         }
       });
@@ -116,7 +106,6 @@ const EDLDownloadModal = ({
     return { approved, rejected, total, duration };
   }, [musicData, validatedSongs, totalMusicas, musicasAprovadas, musicasRejeitadas]);
 
-  // Função para converter MM:SS em timecode (HH:MM:SS:FF)
   const timeToTimecode = (time: string): string => {
     if (!time || time === '--:--' || time === '00:00') return '00:00:00:00';
     const [mins, secs] = time.split(':').map(Number);
@@ -134,7 +123,6 @@ const EDLDownloadModal = ({
     setIsDownloading(true);
     
     setTimeout(() => {
-      // Cabeçalho do EDL
       let edlContent = `TÍTULO: ${validationTitle}
 FORMATO: NON-DROP FRAME
 CRIADO EM: ${new Date().toLocaleString('pt-BR')}
@@ -147,12 +135,10 @@ MÚSICAS VALIDADAS
 
 `;
 
-      // Adicionar cada música validada
       let eventNumber = 1;
       musicData.forEach((music, index) => {
         const status = validatedSongs[index];
         
-        // Apenas incluir músicas aprovadas no EDL
         if (status === 'approved') {
           edlContent += `MÚSICA ${eventNumber}
 ────────────────────────────────────────────────────────────────
@@ -172,7 +158,6 @@ STATUS: APROVADA
         }
       });
 
-      // Adicionar resumo ao final
       edlContent += `
 ===================================================================
 RESUMO DA VALIDAÇÃO
@@ -190,7 +175,6 @@ Validado por: Sistema ContagIA
 
 `;
 
-      // Se houver músicas rejeitadas, adicionar seção de rejeitadas
       const rejectedMusics = musicData.filter((_, index) => validatedSongs[index] === 'rejected');
       if (rejectedMusics.length > 0) {
         edlContent += `
@@ -206,8 +190,6 @@ MÚSICAS REJEITADAS (Não incluídas no EDL)
 `;
         });
       }
-
-      // Criar e fazer download do arquivo
 
 
       const blob = new Blob([edlContent], { type: 'text/plain;charset=utf-8' });
@@ -225,12 +207,10 @@ MÚSICAS REJEITADAS (Não incluídas no EDL)
       
       setIsDownloading(false);
       
-      // Chamar callback de download se existir
       if (onDownload) {
         onDownload();
       }
       
-      // Fechar o modal após download
       setTimeout(() => {
         onClose();
       }, 500);

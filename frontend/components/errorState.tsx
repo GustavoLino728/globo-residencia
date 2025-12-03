@@ -17,7 +17,6 @@ export default function ErrorState({
   sampleMusicData,
 }: ErrorStateProps) {
 
-  // Lógica de determinação da mensagem (baseada no seu código original)
   const isProcessing = isNewFile && isNewFileId;
   
   const title = isProcessing ? "Arquivo em processamento" : "Conteúdo não encontrado";
