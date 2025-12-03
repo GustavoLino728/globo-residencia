@@ -1,0 +1,14 @@
+node_modules
+dist
+uploads
+tmp_audio
+*.log
+.env
+.env.*
+.git
+.gitignore
+README.md
+.vscode
+*.test.ts
+coverage
+.DS_Store

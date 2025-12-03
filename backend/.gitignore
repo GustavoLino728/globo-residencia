@@ -18,6 +18,7 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.docker
 
 # 4. Arquivos Temporários e Uploads
 # Pastas usadas para armazenar arquivos durante o processamento.
