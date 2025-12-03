@@ -11,7 +11,8 @@ import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import MusicPlayer from "@/components/musicPlayer";
 import { Button } from "@heroui/button";
 import { useSearchParams } from 'next/navigation';
-import PageLayout from "@/components/PageLayout"
+import PageLayout from "@/components/PageLayout";
+import { API_CONFIG } from "@/config/api";
 
 
 export default function ValidandoPage() {
@@ -21,7 +22,6 @@ export default function ValidandoPage() {
   const id = params.id as string;
   const urlTitle = searchParams.get('title');
 
-  // Estados para armazenar os dados do upload
   const [musicInfo, setMusicInfo] = useState<MusicInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -31,10 +31,8 @@ export default function ValidandoPage() {
   const [validationTitle, setValidationTitle] = useState(`Validação ${id}`);
   const [validatedSongs, setValidatedSongs] = useState<Record<number, 'approved' | 'rejected'>>({});
   
-  // Verificar se é um arquivo novo (sem dados da API)
-  const isNewFileId = id.includes('-') && id.split('-').length > 1; // IDs gerados pelo upload têm formato timestamp-nome
+  const isNewFileId = id.includes('-') && id.split('-').length > 1; 
   
-  // Dados da música atual para exibição - calculado baseado no estado atual
   const currentMusicData = useMemo(() => {
     if (musicInfo && musicInfo.length > 0) {
       return musicInfo;
@@ -48,18 +46,16 @@ export default function ValidandoPage() {
   const isNewFile = !musicInfo || musicInfo.length === 0;
   const hasMusicData = musicInfo && musicInfo.length > 0;
   const allSongsValidated = currentMusicData && currentMusicData.length > 0 ? Object.keys(validatedSongs).length === currentMusicData.length : false;
-  const [isSubmitting, setIsSubmitting] = useState(false); // Flag para evitar dupla submissão
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   
   const handleGenerateEdl = () => {
-    // Sempre permitir abrir o modal EDL (mesmo para arquivos upload- não finalizados)
     setShowEDLModal(true);
   };
   
-  // Carregar os dados do banco de dados quando o componente montar
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Extrair ID numérico do banco (formato: db-123 ou apenas 123)
+
         let idArquivo: number | null = null;
         
         if (id.startsWith('db-')) {
@@ -68,9 +64,8 @@ export default function ValidandoPage() {
           idArquivo = parseInt(id, 10);
         }
 
-        // Se tem ID válido, buscar do banco
         if (idArquivo && !isNaN(idArquivo)) {
-          const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}`, {
+          const response = await fetch(`${API_CONFIG.BASE_URL}/arquivo/${idArquivo}`, {
             method: 'GET',
             mode: 'cors',
           });
@@ -85,9 +80,7 @@ export default function ValidandoPage() {
             const data = await response.json();
 
             if (data.arquivo) {
-              // Se há músicas identificadas, mostrar
               if (data.musicas && data.musicas.length > 0) {
-                // Converter músicas do banco para o formato do componente
                 const formattedData: MusicInfo[] = data.musicas.map((musica: any, index: number) => {
                   return {
                     musica: musica.titulo || `Música ${index + 1}`,
@@ -108,8 +101,7 @@ export default function ValidandoPage() {
                 setIsLoading(false);
                 return;
               } else {
-                // Arquivo existe mas não tem músicas ainda
-                // Mostrar erro apenas se não estiver processando
+
                 if (data.arquivo.status !== 'Em Processamento') {
                   setHasError(true);
                 }
@@ -120,7 +112,6 @@ export default function ValidandoPage() {
           }
         }
 
-        // Fallback: tentar localStorage (para uploads muito recentes)
         const lastUploadId = localStorage.getItem('lastUploadId');
         const uploadResults = localStorage.getItem('uploadResults');
         
@@ -147,7 +138,6 @@ export default function ValidandoPage() {
           }
         }
 
-        // Nenhum dado encontrado
         setHasError(true);
         setMusicInfo([]);
         
@@ -162,7 +152,6 @@ export default function ValidandoPage() {
     loadData();
   }, [id, urlTitle]);
   
-  // Função auxiliar para formatar segundos em MM:SS
   function formatTime(seconds: number): string {
     if (typeof seconds !== 'number') return "00:00";
     const mins = Math.floor(seconds / 60);
@@ -170,7 +159,6 @@ export default function ValidandoPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  // Buscar o título do vídeo do searchParams ou sessionStorage
   useEffect(() => {
     if (urlTitle) {
       setValidationTitle(urlTitle);
@@ -200,20 +188,15 @@ export default function ValidandoPage() {
     const newValidatedSongs = { ...validatedSongs, [currentIndex]: 'approved' as 'approved' | 'rejected' };
     setValidatedSongs(newValidatedSongs);
     
-    // Verificar se todas as músicas foram validadas após esta aprovação
     const totalValidated = Object.keys(newValidatedSongs).length;
     const totalMusics = currentMusicData?.length || 0;
-    
-    // Se todas as músicas foram validadas, finalizar automaticamente
-    // MAS apenas se o arquivo já estiver salvo no banco (não é upload- local)
+
     if (totalValidated === totalMusics && totalMusics > 0) {
       if (id.startsWith('upload-')) {
-        // Apenas avançar para próxima música ou mostrar mensagem
         if (currentMusicData && currentIndex < currentMusicData.length - 1) {
           setTimeout(() => handleNext(), 500);
         }
       } else {
-        // Pequeno delay para o usuário ver a última validação
         setTimeout(() => {
           handleAutoFinalizar();
         }, 1000);
@@ -227,20 +210,15 @@ export default function ValidandoPage() {
     const newValidatedSongs = { ...validatedSongs, [currentIndex]: 'rejected' as 'approved' | 'rejected' };
     setValidatedSongs(newValidatedSongs);
     
-    // Verificar se todas as músicas foram validadas após esta rejeição
     const totalValidated = Object.keys(newValidatedSongs).length;
     const totalMusics = currentMusicData?.length || 0;
-    
-    // Se todas as músicas foram validadas, finalizar automaticamente
-    // MAS apenas se o arquivo já estiver salvo no banco (não é upload- local)
+
     if (totalValidated === totalMusics && totalMusics > 0) {
       if (id.startsWith('upload-')) {
-        // Apenas avançar para próxima música ou mostrar mensagem
         if (currentMusicData && currentIndex < currentMusicData.length - 1) {
           setTimeout(() => handleNext(), 500);
         }
       } else {
-        // Pequeno delay para o usuário ver a última validação
         setTimeout(() => {
           handleAutoFinalizar();
         }, 1000);
@@ -250,7 +228,6 @@ export default function ValidandoPage() {
     }
   };
   
-  // Função para finalizar arquivo (apenas muda status, não cria relatório EDL)
   const handleAutoFinalizar = async () => {
     try {
       // Extrair ID numérico
@@ -258,10 +235,13 @@ export default function ValidandoPage() {
       
       if (id.startsWith('db-')) {
         idArquivo = parseInt(id.replace('db-', ''), 10);
-      } else if (id.startsWith('upload-')) {
-        // Upload local não pode ser finalizado
+      } 
+      
+      else if (id.startsWith('upload-')) {
         return;
-      } else {
+      }
+      
+      else {
         const numericId = parseInt(id, 10);
         if (!isNaN(numericId)) {
           idArquivo = numericId;
@@ -272,8 +252,7 @@ export default function ValidandoPage() {
         return;
       }
 
-      // Apenas atualizar status para Finalizado (sem criar relatório EDL)
-      const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}/finalizar`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/arquivo/${idArquivo}/finalizar`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -291,21 +270,17 @@ export default function ValidandoPage() {
     }
   };
   
-  // Função para gerar EDL (cria relatório no banco e abre modal)
   const handleFinalizar = async () => {
-    // Evitar dupla submissão
     if (isSubmitting) return;
     
     try {
       setIsSubmitting(true);
       
-      // Extrair ID numérico
       let idArquivo: number | null = null;
       
       if (id.startsWith('db-')) {
         idArquivo = parseInt(id.replace('db-', ''), 10);
       } else if (id.startsWith('upload-')) {
-        // ID de upload local - apenas gerar EDL localmente, sem salvar no banco
         handleGenerateEdl();
         setIsSubmitting(false);
         return;
@@ -322,13 +297,11 @@ export default function ValidandoPage() {
         return;
       }
 
-      // Calcular contadores de validação
       const totalMusicas = currentMusicData?.length || 0;
       const musicasAprovadas = Object.values(validatedSongs).filter(status => status === 'approved').length;
       const musicasRejeitadas = Object.values(validatedSongs).filter(status => status === 'rejected').length;
 
-      // Criar relatório EDL no banco
-      const response = await fetch(`http://127.0.0.1:8000/arquivo/${idArquivo}/finalizar`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/arquivo/${idArquivo}/finalizar`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -344,10 +317,8 @@ export default function ValidandoPage() {
       if (response.ok) {
         const result = await response.json();
         
-        // Resetar flag de submissão
         setIsSubmitting(false);
         
-        // Abrir modal EDL
         handleGenerateEdl();
       } else {
         const error = await response.json();
@@ -361,7 +332,6 @@ export default function ValidandoPage() {
     }
   };
 
-  // Estado de carregamento
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
@@ -380,7 +350,6 @@ export default function ValidandoPage() {
     );
   }
 
-  // Estado de erro ou sem músicas - só mostrar se realmente não houver dados
   if (!hasMusicData && !isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">

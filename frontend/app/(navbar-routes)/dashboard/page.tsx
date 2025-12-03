@@ -32,7 +32,6 @@ export default function DashboardPage() {
                 setLoading(true);
                 setError(null);
                 
-                // Buscar todas as músicas usando SELECT * FROM musica
                 const response = await fetch(`${API_CONFIG.BASE_URL}/musicas`, {
                     method: 'GET',
                     mode: API_CONFIG.CORS.MODE
@@ -47,7 +46,6 @@ export default function DashboardPage() {
                 
                 const musicas = data.musicas || [];
 
-                // Converter para o formato esperado pelo MusicStats/MusicCharts
                 const musicasFormatadas: MusicData[] = musicas.map((m: any) => ({
                     musica: m.titulo || 'Desconhecido',
                     artista: m.artista || 'Desconhecido',

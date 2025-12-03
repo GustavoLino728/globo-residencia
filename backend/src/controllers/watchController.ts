@@ -1,4 +1,3 @@
-// src/controllers/watchController.ts
 import { startWatch } from "../utils/watchUtils";
 import { FastifyRequest, FastifyReply } from "fastify";
 

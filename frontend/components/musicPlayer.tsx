@@ -5,14 +5,13 @@ import { Card, CardBody } from "@heroui/card";
 
 interface MusicPlayerProps {
   videoURL?: string;
-  tempoInicio: string; // Formato "MM:SS"
-  tempoFim: string; // Formato "MM:SS"
+  tempoInicio: string;
+  tempoFim: string;
   musica: string;
   artista: string;
-  key?: string | number; // Para forçar remontagem quando a música mudar
+  key?: string | number; 
 }
 
-// Função para converter tempo MM:SS para segundos
 function timeToSeconds(timeString: string): number {
   if (!timeString || timeString === "N/A") return 0;
   const parts = timeString.split(':');
@@ -99,7 +98,6 @@ export default function MusicPlayer({ videoURL, tempoInicio, tempoFim, musica, a
     if (isPlaying) {
       audio.pause();
     } else {
-      // Se não está no segmento correto, ir para o início
       if (audio.currentTime < startSeconds || audio.currentTime >= endSeconds) {
         audio.currentTime = startSeconds;
       }

@@ -15,7 +15,6 @@ export const VideoPlayer = ({ videoURL, fileType }: VideoPlayerProps) => {
         if (videoURL) {
             setHasVideo(true);
         } else {
-            // Tentar carregar do localStorage
             const storedURL = localStorage.getItem("uploadMediaURL");
             const storedType = localStorage.getItem("uploadFileType");
             if (storedURL) {

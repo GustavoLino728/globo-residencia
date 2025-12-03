@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { VideoInfo } from "@/data/videoMocks";
 import EDLDownloadModal from "@/components/edlDownloadModal";
+import { API_CONFIG } from "@/config/api";
 import { getArquivosPorStatus } from "@/config/api";
 
 const Index = () => {
@@ -28,14 +29,12 @@ const Index = () => {
   const [dbVideosNaoFinalizados, setDbVideosNaoFinalizados] = useState<VideoInfo[]>([]);
   const [dbVideosFinalizados, setDbVideosFinalizados] = useState<VideoInfo[]>([]);
 
-  // Função para formatar duração em MM:SS
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Função para converter arquivo do banco em VideoInfo
   const arquivoToVideoInfo = (arquivo: any): VideoInfo => ({
     id: `db-${arquivo.id_arquivo}`,
     thumbnail: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=225&fit=crop",
@@ -43,13 +42,11 @@ const Index = () => {
     duration: arquivo.duracao_segundos ? formatDuration(arquivo.duracao_segundos) : "00:00",
   });
 
-  // Função para carregar dados
   const loadData = useCallback(async () => {
     setLoading(true);
     
     try {
-      // Buscar TODOS os arquivos do banco
-      const response = await fetch('http://127.0.0.1:8000/arquivos', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/arquivos`, {
           method: 'GET',
           mode: 'cors',
         });
@@ -61,20 +58,16 @@ const Index = () => {
         const data = await response.json();
         const todosArquivos = data.arquivos || [];
         
-        // Criar Set de IDs para deduplicação
         const idsNoBanco = new Set(todosArquivos.map((arq: any) => arq.id_arquivo));
 
-        // Separar por status (EXCLUSIVAMENTE baseado no status do banco)
         const naoFinalizados = todosArquivos.filter((arq: any) => 
           arq.status === 'Não Finalizado' || arq.status === 'Em Processamento' || arq.status === 'Erro'
         );
 
-        // Converter arquivos não finalizados
         const videosNaoFinalizados = naoFinalizados.map(arquivoToVideoInfo);
         setDbVideosNaoFinalizados(videosNaoFinalizados);
 
-        // Buscar arquivos finalizados com id_relatorio
-        const finalizadosResponse = await fetch('http://127.0.0.1:8000/arquivos-finalizados', {
+        const finalizadosResponse = await fetch(`${API_CONFIG.BASE_URL}/arquivos-finalizados`, {
           method: 'GET',
           mode: 'cors',
         });
@@ -91,16 +84,13 @@ const Index = () => {
             }));
           setDbVideosFinalizados(videosFinalizados);
         } else {
-          // Fallback
           const finalizados = todosArquivos.filter((arq: any) => arq.status === 'Finalizado');
           const videosFinalizados = finalizados.map(arquivoToVideoInfo);
           setDbVideosFinalizados(videosFinalizados);
         }
 
-        // Limpar localStorage se o arquivo já está no banco
         const lastUploadId = localStorage.getItem("lastUploadId");
         if (lastUploadId) {
-          // Extrair ID numérico do lastUploadId se for do tipo "upload-123"
           const numericId = parseInt(lastUploadId.replace('upload-', ''), 10);
           if (!isNaN(numericId) && idsNoBanco.has(numericId)) {
             localStorage.removeItem("uploadResults");
@@ -109,7 +99,6 @@ const Index = () => {
           }
         }
       } catch (error) {
-        // Erro ao buscar arquivos
       }
       
       setLoading(false);
@@ -118,7 +107,6 @@ const Index = () => {
   useEffect(() => {
     loadData();
     
-    // Recarregar dados quando a página ficar visível
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         loadData();
@@ -132,9 +120,7 @@ const Index = () => {
     };
   }, [loadData]);
 
-  // APENAS vídeos do banco de dados (sem duplicatas, sem localStorage)
   const allNotFinishedVideos = useMemo(() => {
-    // Remover duplicatas por ID usando Map
     const uniqueVideos = new Map<string, VideoInfo>();
     
     dbVideosNaoFinalizados.forEach(video => {
@@ -144,9 +130,7 @@ const Index = () => {
     return Array.from(uniqueVideos.values());
   }, [dbVideosNaoFinalizados]);
 
-  // APENAS vídeos finalizados do banco (sem duplicatas)
   const allFinishedVideos = useMemo(() => {
-    // Remover duplicatas por ID usando Map
     const uniqueVideos = new Map<string, VideoInfo>();
     
     dbVideosFinalizados.forEach(video => {
@@ -156,32 +140,24 @@ const Index = () => {
     return Array.from(uniqueVideos.values());
   }, [dbVideosFinalizados]);
 
-  // Função para limpar os resultados
   const handleClearResults = () => {
-    // Perguntar confirmação ao usuário
     const confirmed = window.confirm("Tem certeza que deseja limpar todos os resultados do último upload?");
     
     if (confirmed) {
-      // Obter o ID do último upload antes de limpar
       const uploadId = localStorage.getItem("lastUploadId");
       
-      // Remover do localStorage
       localStorage.removeItem("uploadResults");
       localStorage.removeItem("lastUploadId");
       localStorage.removeItem("uploadFileName");
       
-      // Atualizar o estado para remover da visualização
       setUploadResults(null);
       
-      // Remover da lista de vídeos não finalizados
       if (uploadId) {
         setUploadedVideos(prev => prev.filter(v => v.id !== uploadId));
       }
       
-      // Mostrar mensagem de sucesso
       setShowClearMessage(true);
       
-      // Esconder a mensagem após 3 segundos
       setTimeout(() => {
         setShowClearMessage(false);
       }, 3000);
@@ -193,10 +169,8 @@ const Index = () => {
   }, [router]);
 
   const handleFinishedVideoClick = useCallback(async (id: string, title: string) => {
-    // Buscar o vídeo para pegar o id_relatorio
     const video = dbVideosFinalizados.find(v => v.id === id);
 
-    // Extrair ID numérico do arquivo
     let numericId: number;
     if (id.startsWith('db-')) {
       numericId = parseInt(id.replace('db-', ''), 10);
@@ -210,8 +184,7 @@ const Index = () => {
     }
 
     try {
-      // Buscar dados do arquivo com músicas
-      const arquivoResponse = await fetch(`http://127.0.0.1:8000/arquivo/${numericId}`, {
+      const arquivoResponse = await fetch(`${API_CONFIG.BASE_URL}/arquivo/${numericId}`, {
         method: 'GET',
         mode: 'cors',
       });
@@ -222,12 +195,10 @@ const Index = () => {
       if (arquivoResponse.ok) {
         const arquivoData = await arquivoResponse.json();
         
-        // Pegar duração do arquivo
         if (arquivoData.arquivo && arquivoData.arquivo.duracao_segundos) {
           duracaoArquivo = arquivoData.arquivo.duracao_segundos;
         }
         
-        // Formatar músicas para o modal
         if (arquivoData.musicas && arquivoData.musicas.length > 0) {
           musicData = arquivoData.musicas.map((musica: any) => ({
             musica: musica.titulo || 'Música Desconhecida',
@@ -243,10 +214,8 @@ const Index = () => {
         }
       }
 
-      // Verificar se existe id_relatorio antes de buscar
       if (video?.idRelatorio) {
-        // Buscar dados do relatório EDL pelo id_relatorio
-        const response = await fetch(`http://127.0.0.1:8000/relatorio/${video.idRelatorio}`, {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/relatorio/${video.idRelatorio}`, {
           method: 'GET',
           mode: 'cors',
         });
@@ -254,7 +223,6 @@ const Index = () => {
         if (response.ok) {
           const relatorio = await response.json();
 
-          // Para arquivos finalizados, todas as músicas retornadas são aprovadas
           const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
           musicData.forEach((_, index) => {
             validatedSongs[index] = 'approved';
@@ -271,10 +239,9 @@ const Index = () => {
             duracaoArquivo
           });
         } else {
-          // Se falhar ao buscar relatório, abrir modal apenas com as músicas
-          const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
-          musicData.forEach((_, index) => {
-            validatedSongs[index] = 'approved';
+            const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+            musicData.forEach((_, index) => {
+              validatedSongs[index] = 'approved';
           });
           
           setModalData({ 
@@ -289,10 +256,9 @@ const Index = () => {
           });
         }
       } else {
-        // Arquivo finalizado mas sem relatório (finalizou apenas status)
-        const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
-        musicData.forEach((_, index) => {
-          validatedSongs[index] = 'approved';
+          const validatedSongs: Record<number, 'approved' | 'rejected'> = {};
+          musicData.forEach((_, index) => {
+            validatedSongs[index] = 'approved';
         });
         
         setModalData({ 
@@ -312,9 +278,6 @@ const Index = () => {
     }
   }, [dbVideosFinalizados]);
 
-  // Remover a renderização de músicas do localStorage - agora vem apenas do banco
-
-  // Função para formatar segundos em formato de tempo (MM:SS)
   const formatTime = (seconds: number) => {
     if (!seconds && seconds !== 0) return '--:--';
     

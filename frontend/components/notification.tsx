@@ -21,7 +21,6 @@ const Notification = ({
 
   useEffect(() => {
     if (isVisible) {
-      // Pequeno delay para garantir que a animação de entrada seja visível
       setTimeout(() => {
         setIsAnimating(true);
       }, 50);
@@ -30,7 +29,7 @@ const Notification = ({
         setIsAnimating(false);
         setTimeout(() => {
           onClose();
-        }, 500); // Tempo para animação de saída
+        }, 500); 
       }, duration);
 
       return () => clearTimeout(timer);

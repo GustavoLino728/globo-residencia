@@ -22,16 +22,14 @@ export default function MediaUpload() {
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
   const handleFile = (file: File) => {
-    setIsRemoving(false); // Reset removal state when adding a new file
+    setIsRemoving(false);
     
-    // Verificar tamanho do arquivo (limite: 500MB)
-    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB em bytes
+    const MAX_FILE_SIZE = 500 * 1024 * 1024; 
     if (file.size > MAX_FILE_SIZE) {
       alert(`Arquivo muito grande!\n\nTamanho: ${(file.size / (1024 * 1024)).toFixed(2)} MB\nLimite: 500 MB\n\nPor favor, escolha um arquivo menor ou comprima o vídeo.`);
       return;
     }
     
-    // Aceitar arquivos de áudio, vídeo, ou extensões específicas (.mxf, .mp4, .mov, .avi, etc)
     const validExtensions = ['.mxf', '.mp4', '.mov', '.avi', '.mkv', '.wav', '.mp3', '.aac', '.flac'];
     const fileExtension = file.name.toLowerCase().match(/\.\w+$/)?.[0];
     const isValidFile = file.type.startsWith("audio/") || 
@@ -71,7 +69,6 @@ export default function MediaUpload() {
     if (!fileName) return;
     
     try {
-      // Obter o arquivo do input ANTES de qualquer verificação
       const input = document.getElementById("media-upload") as HTMLInputElement;
       const file = input.files?.[0];
       
@@ -80,8 +77,7 @@ export default function MediaUpload() {
         return;
       }
       
-      // VERIFICAR TAMANHO ANTES DE TUDO (limite: 500MB)
-      const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+      const MAX_FILE_SIZE = 500 * 1024 * 1024;
       const fileSizeMB = file.size / (1024 * 1024);
       
       if (file.size > MAX_FILE_SIZE) {
@@ -93,7 +89,6 @@ export default function MediaUpload() {
         return;
       }
       
-      // Verificar se o backend está disponível
       const healthCheck = await checkBackendHealth();
       
       if (!healthCheck.ok) {
@@ -101,20 +96,15 @@ export default function MediaUpload() {
         return;
       }
       
-      // Ativar a tela de loading APENAS após todas as verificações
       setIsLoading(true);
       
-      // Criar FormData e adicionar o arquivo
       const formData = new FormData();
       formData.append("file", file, file.name);
       
-      // Usar a URL configurada
       const apiUrl = getApiUrl('BUSCA_AUDD');
       
-      // Configuração completa e explícita do fetch
-      // Não usar timeout para arquivos grandes - deixar o backend controlar
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutos
+      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
       
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -126,7 +116,6 @@ export default function MediaUpload() {
       
       clearTimeout(timeoutId);
       
-      // Verificar se a resposta foi bem-sucedida
       if (!response.ok) {
         let errorText = "";
         try {
@@ -138,16 +127,10 @@ export default function MediaUpload() {
         throw new Error(`Erro no upload (${response.status}): ${errorText}`);
       }
       
-      // Processar a resposta
       const data = await response.json();
 
-      
-      // Usar o ID do banco de dados se disponível, senão gerar ID local
       const uploadId = data.arquivo?.id ? `db-${data.arquivo.id}` : `upload-${Date.now()}`;
 
-      
-      // Armazenar a resposta no localStorage com ID único
-      // Limpar localStorage anterior
       localStorage.removeItem("uploadResults");
       localStorage.removeItem("lastUploadId");
       localStorage.removeItem("uploadFileName");
@@ -161,17 +144,13 @@ export default function MediaUpload() {
 
       }
       
-      // Pequeno delay para suavidade visual antes do redirecionamento
       setTimeout(() => {
-        // Redirecionar para a página de relatórios
-
         router.push('/relatorios');
       }, 1500);
       
     } catch (error: any) {
       setIsLoading(false);
       
-      // Construir mensagem de erro detalhada
       let mensagemErro = "Ocorreu um erro ao enviar o arquivo.";
       let detalhes = "";
       
@@ -192,9 +171,7 @@ export default function MediaUpload() {
   const handleRemove = () => {
     setIsRemoving(true);
     
-    // Usar setTimeout para dar tempo para a animação acontecer
     setTimeout(() => {
-      // Pausa a reprodução se estiver tocando
       if (mediaElementRef.current) {
         mediaElementRef.current.pause();
         mediaElementRef.current.currentTime = 0;
@@ -203,22 +180,18 @@ export default function MediaUpload() {
       setMediaURL(null);
       setFileType(null);
       setIsRemoving(false);
-      // Revoga URL do objeto
       if (urlRef.current) {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
-      // Limpa o input de arquivo
       const input = document.getElementById("media-upload") as HTMLInputElement;
       if (input) input.value = "";
-      // Limpa dados do localStorage relacionados ao upload
       localStorage.removeItem("uploadMediaURL");
       localStorage.removeItem("uploadFileType");
       localStorage.removeItem("uploadSupabaseURL");
-    }, 500); // Tempo suficiente para a animação ocorrer
+    }, 500);
   };
 
-  // Revoga URL ao desmontar o componente
   useEffect(() => {
     return () => {
       if (urlRef.current) {
@@ -284,7 +257,7 @@ export default function MediaUpload() {
         <div className={`transition-all duration-500 ease-in-out transform ${
           fileName && mediaURL
             ? isRemoving 
-              ? 'opacity-0 scale-95 translate-y-2' // Estado de saída durante remoção
+              ? 'opacity-0 scale-95 translate-y-2'
               : 'opacity-100 scale-100 translate-y-0' 
             : 'opacity-0 scale-95 translate-y-2 pointer-events-none h-0 overflow-hidden'
         }`}>

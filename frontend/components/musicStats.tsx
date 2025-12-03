@@ -17,9 +17,7 @@ interface MusicUsage {
 }
 
 const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
-  // Otimizar cálculos com useMemo
   const { sortedMusic, totalMusics, uniqueMusics, totalDuration } = useMemo(() => {
-    // Processar dados para encontrar músicas mais utilizadas
     const musicUsageMap = new Map<string, MusicUsage>();
 
     musicData.forEach(music => {
@@ -39,12 +37,10 @@ const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
       }
     });
 
-    // Converter para array e ordenar por frequência
     const sortedMusic = Array.from(musicUsageMap.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10); // Top 10
 
-    // Calcular estatísticas gerais
     const totalMusics = musicData.length;
     const uniqueMusics = musicUsageMap.size;
     const totalDuration = musicData.reduce((acc, music) => 
@@ -140,7 +136,6 @@ const MusicStats = ({ musicData, showFrequency = true }: MusicStatsProps) => {
   );
 };
 
-// Função auxiliar para converter tempo para segundos
 function parseTimeToSeconds(timeString: string): number {
   if (!timeString) return 0;
   
@@ -151,7 +146,6 @@ function parseTimeToSeconds(timeString: string): number {
   return 0;
 }
 
-// Função auxiliar para formatar tempo
 function formatTime(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);

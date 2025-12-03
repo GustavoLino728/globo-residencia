@@ -270,7 +270,7 @@ export async function buscaAudDHandler(request: FastifyRequest, reply: FastifyRe
             artista: m.artista,
             album: meta.album || undefined,
             gravadora: meta.label || meta.gravadora || undefined,
-            efeito_sonoro: false, // Pode ser melhorado com detecção futura
+            efeito_sonoro: false,
             genero: meta.genre || undefined,
             isrc: m.isrc,
             timestamp_inicio_seg: m.inicioSegundos,

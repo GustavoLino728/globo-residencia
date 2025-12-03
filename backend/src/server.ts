@@ -1,11 +1,12 @@
 import * as dotenv from 'dotenv';
+
 dotenv.config();
+
 import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-
 import uploadRoutes from "./routes/uploadRoutes";
 import fileRoutes from './routes/fileRoutes';
 import watchRoutes from "./routes/watchRoutes";
@@ -25,7 +26,7 @@ const fastify = Fastify({
 });
 
 fastify.register(cors, {
-  origin: '*',
+  origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: false,
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -42,7 +43,7 @@ fastify.addContentTypeParser(/^video\/.*/, { parseAs: 'buffer' }, function (req,
 });
 
 fastify.register(multipart, {
-  attachFieldsToBody: false,
+  attachFieldsToBody: false, 
   limits: {
     fileSize: 1024 * 1024 * 1024,
     files: 10
@@ -58,10 +59,8 @@ fastify.register(swagger, {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://globo-residencia-backend.onrender.com'
-          : `http://localhost:${PORT}`,
-        description: process.env.NODE_ENV === 'production' ? 'Produção' : 'Desenvolvimento'
+        url: `http://localhost:${PORT}`, 
+        description: 'Desenvolvimento'
       }
     ],
     tags: [
@@ -95,7 +94,7 @@ fastify.register(fileRoutes);
 fastify.register(uploadRoutes, { prefix: "/api/upload" });
 fastify.register(watchRoutes, { prefix: "/api/watch" });
 
-fastify.listen({ port: PORT, host: HOST }, (err, address) => {
+fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

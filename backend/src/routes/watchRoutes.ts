@@ -1,4 +1,3 @@
-// src/routes/watchRoutes.ts
 import { watchController } from "../controllers/watchController";
 import { FastifyInstance } from "fastify";
 

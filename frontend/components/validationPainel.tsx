@@ -1,16 +1,11 @@
-// components/ValidationPanel.tsx
-
 import React from 'react';
-// Importe todos os componentes internos que ele usa
 import NavigationControls from "@/components/navigationControl";
 import MusicInfoCard, { MusicInfo } from "@/components/validationCard";
 import ApprovalButtons from "@/components/approvalButtons";
 import MusicCounter from "@/components/musicCounter";
 import { Button } from "@heroui/button";
 
-// Definição das Props (propriedades)
 interface ValidationPanelProps {
-  // Estado e dados
   isNewFile: boolean;
   isNewFileId: boolean;
   currentMusicData: MusicInfo[];
@@ -18,16 +13,14 @@ interface ValidationPanelProps {
   validatedSongs: Record<number, 'approved' | 'rejected'>;
   allSongsValidated: boolean;
 
-  // Handlers (funções de interação)
   handlePrevious: () => void;
   handleNext: () => void;
   handleApprove: () => void;
   handleReject: () => void;
-  onGenerateEdl: () => void; // A função para abrir o modal
-  onFinalizar?: () => void; // Nova função para finalizar o arquivo (opcional)
+  onGenerateEdl: () => void; 
+  onFinalizar?: () => void;
 }
 
-// O componente em si
 export default function ValidationPanel({
   isNewFile,
   isNewFileId,
@@ -43,11 +36,7 @@ export default function ValidationPanel({
   onFinalizar,
 }: ValidationPanelProps) {
 
-  // O componente NÃO precisa de useState, useEffect, ou useParams!
-  // Toda a lógica de estado e roteamento fica no componente pai.
-
   return (
-    // O div com o estilo de 'glass effect'
     <div className="lg:col-span-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl flex flex-col p-8 shadow-2xl w-full">
       
       {/* Aviso para arquivos novos - Mantido, pois usa as props isNewFile e isNewFileId */}
