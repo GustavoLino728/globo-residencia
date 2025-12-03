@@ -37,7 +37,7 @@ export async function saveFile(
     try {
       idArquivoBanco = await insertArquivoMidia({
         nome_original_arquivo: fileName,
-        caminho_storage: 'memory', // Indica que o arquivo não foi salvo
+        caminho_storage: 'memory',
         tamanho_bytes: fileSize,
         formato: fileExtension
       });
@@ -47,8 +47,8 @@ export async function saveFile(
 
     return {
       fileBuffer,
-      supabasePath: 'memory', // Não há caminho físico
-      supabaseUrl: '', // Não há URL
+      supabasePath: 'memory',
+      supabaseUrl: '',
       fileName: fileName,
       fileSize: fileSize,
       format: fileExtension,
