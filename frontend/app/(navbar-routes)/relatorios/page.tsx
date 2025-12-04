@@ -74,13 +74,13 @@ const Index = () => {
 
         if (finalizadosResponse.ok) {
           const finalizadosData = await finalizadosResponse.json();
-          const videosFinalizados = (finalizadosData.arquivos || [])
+          const videosFinalizados = (Array.isArray(finalizadosData) ? finalizadosData : [])
             .map((arq: any) => ({
               id: `db-${arq.id_arquivo}`,
               thumbnail: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=225&fit=crop",
               title: arq.nome_original_arquivo,
               duration: arq.duracao_segundos ? formatDuration(arq.duracao_segundos) : "00:00",
-              idRelatorio: arq.id_relatorio // Pode ser null
+              idRelatorio: arq.id_relatorio
             }));
           setDbVideosFinalizados(videosFinalizados);
         } else {
